@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useState, createRef, useEffect, useRef } from "react";
 import MyStatusBar from "../../components/myStatusBar";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import {
   Colors,
   screenWidth,
@@ -19,87 +19,45 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MapViewDirections from "react-native-maps-directions";
 import Key from "../../constants/key";
+import { fetchEnrouteChargingStations } from '../../api/realApi';
+import { getCurrentPosition } from '../../helpers/geoUtils';
+import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
+
 
 const width = screenWidth;
 const cardWidth = width / 1.15;
 const SPACING_FOR_CARD_INSET = width * 0.1 - 30;
 
-const chargingSpotsList = [
-  {
-    coordinate: {
-      latitude: 22.6181,
-      longitude: 88.456747,
-    },
-    id: "1",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "BYD Charging Point",
-    stationAddress: "Near shell petrol station",
-    rating: 4.7,
-    totalStations: 8,
-    distance: "4.5 km",
-    isOpen: true,
-  },
-  {
-    coordinate: {
-      latitude: 22.6345648,
-      longitude: 88.4377279,
-    },
-    id: "2",
-    stationImage: require("../../assets/images/chargingStations/charging_station4.png"),
-    stationName: "TATA EStation",
-    stationAddress: "Near orange business hub",
-    rating: 3.9,
-    totalStations: 15,
-    distance: "5.7 km",
-    isOpen: false,
-  },
-  {
-    coordinate: {
-      latitude: 22.616357,
-      longitude: 88.442317,
-    },
-    id: "3",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "HP Charging Station",
-    stationAddress: "Near ananta business park",
-    rating: 4.9,
-    totalStations: 6,
-    distance: "2.1 km",
-    isOpen: true,
-  },
-  {
-    coordinate: {
-      latitude: 22.6341137,
-      longitude: 88.4497463,
-    },
-    id: "4",
-    stationImage: require("../../assets/images/chargingStations/charging_station4.png"),
-    stationName: "VIDA Station V1",
-    stationAddress: "Near opera street",
-    rating: 4.2,
-    totalStations: 15,
-    distance: "3.5 km",
-    isOpen: false,
-  }, 
-];
-
-const fromDefaultLocation = {
-  latitude: 22.6293867,
-  longitude: 88.4354486,  
+const localImageMap = {
+  'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
+  'charging_station2.png': require('../../assets/images/chargingStations/charging_station2.png'),
+  'charging_station3.png': require('../../assets/images/chargingStations/charging_station3.png'),
+  'charging_station4.png': require('../../assets/images/chargingStations/charging_station4.png'),
+  'charging_station5.png': require('../../assets/images/chargingStations/charging_station5.png'),
 };
 
-const toDefaultLocation = {
-  latitude: 22.6242,
-  longitude: 88.453999,  
-};
+const EnrouteChargingStationsScreen = ({ navigation, route }) => {
+  const { pickupLocation, destinationLocation } = route.params;
+  console.log("EnrouteChargingStationsScreen", pickupLocation, destinationLocation);
+  // Calculate the midpoint between the pickupLocation and destinationLocation
+  const latitudeMidpoint = (pickupLocation.latitude + destinationLocation.latitude) / 2;
+  const longitudeMidpoint = (pickupLocation.longitude + destinationLocation.longitude) / 2;
 
-const EnrouteChargingStationsScreen = ({ navigation }) => {
-  const [markerList] = useState(chargingSpotsList);
+  // Calculate distance between pickupLocation and destinationLocation (haversine formula or manually)
+  const latDiff = Math.abs(pickupLocation.latitude - destinationLocation.latitude);
+  const longDiff = Math.abs(pickupLocation.longitude - destinationLocation.longitude);
+
+  // Adjust delta to fit both markers in the view
+  const latitudeDelta = latDiff * 1.5; // Adjust factor for padding
+  const longitudeDelta = longDiff * 1.5; // Adjust factor for padding
+
+  const [markerList, setMarkerList] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState(null);
   const [region] = useState({
-    latitude: 22.6292757,
-    longitude: 88.444781,   
-    latitudeDelta: 0.03,
-    longitudeDelta: 0.03,
+    latitude: latitudeMidpoint,
+    longitude: longitudeMidpoint,
+    latitudeDelta: latitudeDelta,
+    longitudeDelta: longitudeDelta,
   });
 
   let mapAnimation = new Animated.Value(0);
@@ -108,33 +66,55 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
   const _map = createRef();
 
   useEffect(() => {
-    mapAnimation.addListener(({ value }) => {
-      let index = Math.floor(value / cardWidth + 0.3);
-      if (index >= markerList.length) {
-        index = markerList.length - 1;
-      }
-      if (index <= 0) {
-        index = 0;
-      }
+    loadEnrouteChargingStations();
+    fetchCurrentLocation();
+  }, []);
 
-      clearTimeout(regionTimeout);
+  const fetchCurrentLocation = async () => {
+    const location = await getCurrentPosition();
+    setCurrentLocation(location);
+  };
 
-      const regionTimeout = setTimeout(() => {
-        if (mapIndex !== index) {
-          mapIndex = index;
-          const { coordinate } = markerList[index];
-          _map.current.animateToRegion(
-            {
-              ...coordinate,
-              latitudeDelta: region.latitudeDelta,
-              longitudeDelta: region.longitudeDelta,
-            },
-            350
-          );
-        }
-      }, 10);
-    });
-  });
+  const loadEnrouteChargingStations = async () => {
+    try {
+      let sourcePlace = "";
+      let destinationPlace = "";
+      const { success, data } = await fetchEnrouteChargingStations(sourcePlace, destinationPlace);
+      if (success && Array.isArray(data) && data.length > 0) {
+        setMarkerList(data);
+        mapAnimation.addListener(({ value }) => {
+          let index = Math.floor(value / cardWidth + 0.3);
+          if (index >= markerList.length) {
+            index = markerList.length - 1;
+          }
+          if (index <= 0) {
+            index = 0;
+          }
+  
+          clearTimeout(regionTimeout);
+  
+          const regionTimeout = setTimeout(() => {
+            if (mapIndex !== index) {
+              mapIndex = index;
+              _map.current.animateToRegion(
+                {
+                  latitude: markerList[index].latitude,
+                  longitude: markerList[index].longitude,
+                  latitudeDelta: region.latitudeDelta,
+                  longitudeDelta: region.longitudeDelta,
+                },
+                350
+              );
+            }
+          }, 10);
+        });
+      } else {
+        console.log("No enroute charging stations available.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch enroute charging stations.", error);
+    }
+  };
 
   const interpolation = markerList.map((marker, index) => {
     const inputRange = [
@@ -166,7 +146,7 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
   const _scrollView = useRef(null);
 
   return (
-    <View style={{ flex: 1,backgroundColor:Colors.bodyBackColor }}>
+    <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
       <View style={{ flex: 1 }}>
         {markersInfo()}
@@ -199,7 +179,6 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
         ref={_map}
         style={{ flex: 1 }}
         initialRegion={region}
-        provider={PROVIDER_GOOGLE}
       >
         {markerList.map((marker, index) => {
           const scaleStyle = {
@@ -212,7 +191,7 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
           return (
             <Marker
               key={index}
-              coordinate={marker.coordinate}
+              coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
               onPress={(e) => onMarkerPress(e)}
             >
               <Animated.View style={styles.markerStyle}>
@@ -224,22 +203,22 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
               </Animated.View>
             </Marker>
           );
-        })}       
+        })}
         <MapViewDirections
-          origin={fromDefaultLocation}
-          destination={toDefaultLocation}
+          origin={pickupLocation}
+          destination={destinationLocation}
           apikey={Key.apiKey}
           lineCap="square"
           strokeColor={Colors.primaryColor}
           strokeWidth={3}
         />
-        <Marker coordinate={fromDefaultLocation}>
+        <Marker coordinate={pickupLocation}>
           <Image
             source={require("../../assets/images/icons/marker1.png")}
             style={{ width: 40.0, height: 40.0, resizeMode: "contain" }}
           />
         </Marker>
-        <Marker coordinate={toDefaultLocation}>
+        <Marker coordinate={destinationLocation}>
           <Image
             source={require("../../assets/images/icons/marker3.png")}
             style={{ width: 40.0, height: 40.0, resizeMode: "contain" }}
@@ -282,14 +261,21 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
         {markerList.map((item, index) => (
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.push("ChargingStationDetail")}
+            onPress={() => navigation.push("ChargingStationDetail", { "chargingStationId": item.id })}
             key={index}
             style={styles.enrouteChargingStationWrapStyle}
           >
-            <Image
-              source={item.stationImage}
-              style={styles.enrouteChargingStationImage}
-            />
+            {isImageUrl(item.stationImage) ? (
+              <Image
+                source={{ uri: item.stationImage }} // If it's a URL, use it directly
+                style={styles.enrouteChargingStationImage}
+              />
+            ) : (
+              <Image
+                source={getImageSource(item.stationImage, localImageMap)}
+                style={styles.enrouteChargingStationImage}
+              />
+            )}
             <View style={styles.enrouteStationOpenCloseWrapper}>
               <Text style={{ ...Fonts.whiteColor18Regular }}>
                 {item.isOpen ? "Open" : "Closed"}
@@ -338,7 +324,7 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
                         flex: 1,
                       }}
                     >
-                      {item.totalStations} Charging Points
+                      {item.totalPoints} Charging Points
                     </Text>
                   </View>
                 </View>
@@ -363,7 +349,7 @@ const EnrouteChargingStationsScreen = ({ navigation }) => {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
-                    navigation.push("Direction");
+                    navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude } });
                   }}
                   style={styles.getDirectionButton}
                 >
