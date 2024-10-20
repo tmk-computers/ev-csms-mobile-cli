@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import {
@@ -18,11 +19,36 @@ import {
 } from "../../constants/styles";
 import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { ENV } from '@env';
+import { setupMockApis } from '../../api/mockApi';
+import { signupUser } from '../../api/realApi';
 
-const RegisterScreen = ({ navigation }) => {
+// Mock the API if the environment is development
+if (ENV === 'development') {
+  setupMockApis();
+}
+
+const RegisterScreen = ({ navigation, route }) => {
+  // Retrieve the mobileNumber passed from the SigninScreen
+  const { mobileNumber } = route.params;
+
   const [fullName, setfullName] = useState("");
-  const [userName, setuserName] = useState("");
   const [email, setemail] = useState("");
+
+  // Function to handle signup API call
+  const handleSignup = async () => {
+    try {
+      const data = await signupUser(mobileNumber, fullName, email); // Call the function from api.js
+      if (data.success) {
+        navigation.push("Verification", { mobileNumber });
+      } else {
+        Alert.alert('Signup Failed', data.message);
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      Alert.alert('Error', error.message || 'An error occurred. Please try again.');
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -35,7 +61,6 @@ const RegisterScreen = ({ navigation }) => {
           contentContainerStyle={{ paddingBottom: Sizes.fixPadding * 2.0 }}
         >
           {fullNameInfo()}
-          {userNameInfo()}
           {emailInfo()}
           {continueButton()}
           {agreeInfo()}
@@ -85,27 +110,6 @@ const RegisterScreen = ({ navigation }) => {
     );
   }
 
-  function userNameInfo() {
-    return (
-      <View
-        style={{
-          ...styles.textFieldWrapper,
-          marginVertical: Sizes.fixPadding * 2.0,
-        }}
-      >
-        <TextInput
-          placeholder="Username"
-          placeholderTextColor={Colors.grayColor}
-          value={userName}
-          onChangeText={(text) => setuserName(text)}
-          style={{ ...Fonts.blackColor16Medium, padding: 1, }}
-          cursorColor={Colors.primaryColor}
-          selectionColor={Colors.primaryColor}
-        />
-      </View>
-    );
-  }
-
   function fullNameInfo() {
     return (
       <View
@@ -131,9 +135,7 @@ const RegisterScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => {
-          navigation.push("Verification");
-        }}
+        onPress={handleSignup}
         style={{ ...commonStyles.button, borderRadius: Sizes.fixPadding - 5.0, margin: Sizes.fixPadding * 2.0 }}
       >
         <Text style={{ ...Fonts.whiteColor18SemiBold }}>Continue</Text>
