@@ -9,7 +9,8 @@ import {
   View,
   Modal,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Colors,
   Fonts,
@@ -19,13 +20,51 @@ import {
 } from "../../constants/styles";
 import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { updateUserProfile } from '../../api/realApi';
 
 const EditProfileScreen = ({ navigation }) => {
   const [name, setname] = useState("Peter Jones");
   const [email, setemail] = useState("peterjones@abc.com");
   const [mobileNumber, setmobileNumber] = useState("1234567890");
-  const [showChangeProfilePicSheet, setshowChangeProfilePicSheet] =
-    useState(false);
+  const [token, settoken] = useState("");
+  const [isLoading, setisLoading] = useState(false);
+  const [showChangeProfilePicSheet, setshowChangeProfilePicSheet] = useState(false);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const storedName = await AsyncStorage.getItem("fullName");
+        const storedEmail = await AsyncStorage.getItem("email");
+        const storedMobileNumber = await AsyncStorage.getItem("mobileNumber");
+        const storedToken = await AsyncStorage.getItem("accessToken");
+
+        if (storedName) setname(storedName);
+        if (storedEmail) setemail(storedEmail);
+        if (storedMobileNumber) setmobileNumber(storedMobileNumber);
+        if (storedToken) settoken(storedToken);
+      } catch (error) {
+        console.error("Error fetching profile data from storage", error);
+      }
+    };
+    fetchProfileData();
+  }, []);
+
+  const handleUpdateProfile = async () => {
+    setisLoading(true);
+    const { success, data } = await updateUserProfile(token, mobileNumber, name, email);
+    if (success && data.success) {
+      const { fullName, mobileNumber, email } = data.userProfileResponse;
+
+      await AsyncStorage.setItem('fullName', fullName);
+      await AsyncStorage.setItem('mobileNumber', mobileNumber);
+      await AsyncStorage.setItem('email', email);
+
+      setisLoading(false);
+    } else {
+      setisLoading(false);
+      Alert.alert('Update Profile Failed', data.message || 'Invalid User Data. Please try again.');
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -138,7 +177,7 @@ const EditProfileScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => {navigation.pop()}}
+        onPress={() => { handleUpdateProfile(); }}
         style={{ ...commonStyles.button, borderRadius: 0 }}
       >
         <Text style={{ ...Fonts.whiteColor18Medium }}>Update profile</Text>
@@ -156,7 +195,7 @@ const EditProfileScreen = ({ navigation }) => {
             placeholderTextColor={Colors.grayColor}
             value={mobileNumber}
             onChangeText={(text) => setmobileNumber(text)}
-            style={{ ...Fonts.blackColor16Medium,padding:0 }}
+            style={{ ...Fonts.blackColor16Medium }}
             keyboardType="phone-pad"
             cursorColor={Colors.primaryColor}
             selectionColor={Colors.primaryColor}
@@ -176,7 +215,7 @@ const EditProfileScreen = ({ navigation }) => {
             placeholderTextColor={Colors.grayColor}
             value={email}
             onChangeText={(text) => setemail(text)}
-            style={{ ...Fonts.blackColor16Medium,padding:0 }}
+            style={{ ...Fonts.blackColor16Medium }}
             keyboardType="email-address"
             cursorColor={Colors.primaryColor}
             selectionColor={Colors.primaryColor}
@@ -196,7 +235,7 @@ const EditProfileScreen = ({ navigation }) => {
             placeholderTextColor={Colors.grayColor}
             value={name}
             onChangeText={(text) => setname(text)}
-            style={{ ...Fonts.blackColor16Medium,padding:0 }}
+            style={{ ...Fonts.blackColor16Medium }}
             cursorColor={Colors.primaryColor}
             selectionColor={Colors.primaryColor}
           />
@@ -290,7 +329,7 @@ const styles = StyleSheet.create({
     borderRadius: Sizes.fixPadding,
     paddingHorizontal: Sizes.fixPadding * 1.5,
     paddingVertical:
-      Platform.OS == "ios" ? Sizes.fixPadding - 2.0 : Sizes.fixPadding - 5.0,
+    Platform.OS == "ios" ? Sizes.fixPadding - 2.0 : Sizes.fixPadding - 5.0,
     marginTop: Sizes.fixPadding,
   },
   sheetWrapStyle: {
