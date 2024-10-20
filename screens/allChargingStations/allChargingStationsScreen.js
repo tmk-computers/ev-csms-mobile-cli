@@ -17,7 +17,7 @@ const allStationsList = [
     stationName: "Apex Charging Point",
     stationAddress: "Near shell petrol station",
     rating: 4.7,
-    totalStations: 8,
+    totalPoints: 8,
     distance: "5.7 km",
     isOpen: true,
   },
@@ -27,7 +27,7 @@ const allStationsList = [
     stationName: "Horizon EV Station",
     stationAddress: "Near apex hospital",
     rating: 4.2,
-    totalStations: 18,
+    totalPoints: 18,
     distance: "5.7 km",
     isOpen: true,
   },
@@ -37,7 +37,7 @@ const allStationsList = [
     stationName: "Rapid EV Charge",
     stationAddress: "Near shelby play ground",
     rating: 4.2,
-    totalStations: 12,
+    totalPoints: 12,
     distance: "5.7 km",
     isOpen: false,
   },
@@ -47,7 +47,7 @@ const allStationsList = [
     stationName: "Tesla Recharge",
     stationAddress: "Near nissan show room",
     rating: 4.9,
-    totalStations: 22,
+    totalPoints: 22,
     distance: "5.7 km",
     isOpen: true,
   },
@@ -57,7 +57,7 @@ const allStationsList = [
     stationName: "BYD Charging Point",
     stationAddress: "Near shell petrol station",
     rating: 4.7,
-    totalStations: 8,
+    totalPoints: 8,
     distance: "4.5 km",
     isOpen: true,
   },
@@ -67,7 +67,7 @@ const allStationsList = [
     stationName: "TATA EStation",
     stationAddress: "Near orange business hub",
     rating: 3.9,
-    totalStations: 15,
+    totalPoints: 15,
     distance: "5.7 km",
     isOpen: false,
   },
@@ -87,8 +87,10 @@ const AllChargingStationsScreen = ({ navigation }) => {
   function allStationsInfo() {
     const renderItem = ({ item }) => (
       <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => { navigation.push("ChargingStationDetail") }}
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.push("ChargingStationDetail", { "chargingStationId": item.id });
+        }}
         style={styles.enrouteChargingStationWrapStyle}
       >
         <Image
@@ -140,7 +142,7 @@ const AllChargingStationsScreen = ({ navigation }) => {
                     flex: 1,
                   }}
                 >
-                  {item.totalStations} Charging Points
+                  {item.totalPoints} Charging Points
                 </Text>
               </View>
             </View>

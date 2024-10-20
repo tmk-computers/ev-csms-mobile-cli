@@ -19,6 +19,15 @@ import {
 import MyStatusBar from "../../components/myStatusBar";
 import { useFocusEffect } from "@react-navigation/native";
 import IntlPhoneInput from "react-native-intl-phone-input";
+import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
+import { ENV } from '@env';
+import { setupMockApis } from '../../api/mockApi';
+import { checkUserExists } from '../../api/realApi';
+
+// Use mock API only in development
+if (ENV === 'development') {
+  setupMockApis();
+}
 
 const SigninScreen = ({ navigation }) => {
   const backAction = () => {
@@ -51,7 +60,29 @@ const SigninScreen = ({ navigation }) => {
   }
 
   const [backClickCount, setBackClickCount] = useState(0);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+
+  const handleCheckUserExists = async () => {
+    try {
+      if (!mobileNumber || parsePhoneNumberFromString(mobileNumber)?.isValid() === false) {
+        // Show an error message if mobile number is empty
+        alert('Please enter a valid mobile number');
+        return;
+      }
+      const { success, data } = await checkUserExists(mobileNumber);
+
+      if (success && data.exists) {
+        // User exists, navigate to OTP Verification screen
+        navigation.push("Verification", { mobileNumber });
+      } else {
+        // User does not exist, navigate to Register screen
+        navigation.push("Register", { mobileNumber });
+      }
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      // Handle error if needed
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -64,6 +95,7 @@ const SigninScreen = ({ navigation }) => {
         >
           {mobileNumberInfo()}
           {continueButton()}
+          {SkipButton()}
         </ScrollView>
       </View>
       {exitInfo()}
@@ -74,9 +106,7 @@ const SigninScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => {
-          navigation.push("Register");
-        }}
+        onPress={handleCheckUserExists}
         style={{ ...commonStyles.button,borderRadius:Sizes.fixPadding-5.0, margin: Sizes.fixPadding * 2.0 }}
       >
         <Text style={{ ...Fonts.whiteColor18SemiBold }}>Continue</Text>
@@ -84,7 +114,26 @@ const SigninScreen = ({ navigation }) => {
     );
   }
 
+  function SkipButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.push("BottomTabBar");
+        }}
+        style={{ ...commonStyles.button,borderRadius: Sizes.fixPadding-5.0, margin: Sizes.fixPadding * 2.0 }}
+      >
+        <Text style={{ ...Fonts.whiteColor18SemiBold }}>Skip</Text>
+      </TouchableOpacity>
+    );
+  }
+
   function mobileNumberInfo() {
+    const handleMobileNumberChange = ({ dialCode, unmaskedPhoneNumber }) => {
+      // Clean mobile number by removing non-numeric characters
+      const cleanedMobileNumber = unmaskedPhoneNumber.replace(/\D/g, '');
+      setMobileNumber(`${dialCode}${cleanedMobileNumber}`);
+    };
     return (
       <View
         style={{
@@ -93,10 +142,10 @@ const SigninScreen = ({ navigation }) => {
         }}
       >
         <IntlPhoneInput
-          onChangeText={({ phoneNumber }) => setPhoneNumber(phoneNumber)}
-          defaultCountry="US"
+          onChangeText={handleMobileNumberChange}
+          defaultCountry="IN"
           containerStyle={styles.mobileNumberWrapStyle}
-          placeholder={"Enter your phone number"}
+          placeholder={"Enter your mobile number"}
           placeholderTextColor={Colors.grayColor}
           phoneInputStyle={{ flex: 1, ...Fonts.blackColor16Medium }}
           dialCodeTextStyle={{

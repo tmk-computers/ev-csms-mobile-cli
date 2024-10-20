@@ -8,8 +8,10 @@ import {
   ActivityIndicator,
   Platform,
   Modal,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Colors,
   screenWidth,
@@ -20,10 +22,51 @@ import {
 import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { OtpInput } from 'react-native-otp-entry';
+import { ENV } from '@env';  // Import the environment variable
+import { setupMockApis } from '../../api/mockApi';
+import { verifyOtp } from '../../api/realApi';
 
-const VerificationScreen = ({ navigation }) => {
+
+if (ENV === 'development') {
+  setupMockApis();
+}
+
+const VerificationScreen = ({ navigation, route }) => {
+
+  const { mobileNumber } = route.params;
+
+  if (!mobileNumber) {
+    Alert.alert('Error', 'Mobile number is missing.');
+    return;
+  }
+
   const [otpInput, setotpInput] = useState("");
   const [isLoading, setisLoading] = useState(false);
+
+  // Function to handle OTP verification
+  const handleVerifyOtp = async (otp) => {
+    setisLoading(true);
+    const { success, data } = await verifyOtp(mobileNumber, otp);  // Use the new API function
+    if (success && data.success) {
+      const { token, refreshToken, expiresIn } = data.loginResponse;
+      const { fullName, mobileNumber, email } = data.userProfileResponse;
+
+      await AsyncStorage.setItem('accessToken', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+      await AsyncStorage.setItem('expiresIn', expiresIn.toString());
+
+      await AsyncStorage.setItem('fullName', fullName);
+      await AsyncStorage.setItem('mobileNumber', mobileNumber);
+      await AsyncStorage.setItem('email', email);
+
+      setisLoading(false);
+      navigation.push("BottomTabBar");
+    } else {
+      setisLoading(false);
+      setotpInput("");
+      Alert.alert('Verification Failed', data.message || 'Invalid OTP. Please try again.');
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -45,6 +88,10 @@ const VerificationScreen = ({ navigation }) => {
   );
 
   function resendText() {
+    const resendFunction = () => {
+      // TODO: Implement resend functionality
+    };
+
     return (
       <Text
         style={{
@@ -52,8 +99,9 @@ const VerificationScreen = ({ navigation }) => {
           textAlign: "center",
           marginHorizontal: Sizes.fixPadding * 2.0,
         }}
+        onPress={resendFunction}
       >
-        Resend
+        Resend OTP
       </Text>
     );
   }
@@ -101,18 +149,16 @@ const VerificationScreen = ({ navigation }) => {
 
   function otpFields() {
     return (
-      <View style={{ margin: Sizes.fixPadding * 2.0, marginTop: Sizes.fixPadding * 5.0 }}>
+      <View style={{ margin: Sizes.fixPadding * 2.0, marginTop: Sizes.fixPadding * 5.0, }}>
         <OtpInput
           numberOfDigits={4}
           focusColor={Colors.primaryColor}
-          onTextChange={text => {
-            if (text.length == 4) {
-              setotpInput(text);
-              setisLoading(true);
-              setTimeout(() => {
-                setisLoading(false);
-                navigation.push("BottomTabBar");
-              }, 2000);
+          value={otpInput}
+          onTextChange={(text) => {
+            setotpInput(text);  // Set OTP input to state
+
+            if (text.length === 4) {
+              handleVerifyOtp(text);  // Call verifyOtp when OTP length is 4
             }
           }}
           theme={{
@@ -131,11 +177,12 @@ const VerificationScreen = ({ navigation }) => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          setisLoading(true);
-          setTimeout(() => {
-            setisLoading(false);
-            navigation.push("BottomTabBar");
-          }, 2000);
+          if (otpInput.length === 4) {
+            setisLoading(true);
+            handleVerifyOtp(otpInput);  // Call verifyOtp if OTP is 4 digits
+          } else {
+            Alert.alert('Invalid OTP', 'Please enter a valid 4-digit OTP.');
+          }
         }}
         style={{ ...commonStyles.button, borderRadius: Sizes.fixPadding - 5.0, margin: Sizes.fixPadding * 2.0 }}
       >
@@ -172,7 +219,7 @@ const VerificationScreen = ({ navigation }) => {
                 marginTop: Sizes.fixPadding,
               }}
             >
-              See your phone to see the verification code
+              See your mobile to see the verification code
             </Text>
           </View>
         </View>
