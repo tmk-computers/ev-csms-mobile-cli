@@ -6,8 +6,12 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  PermissionsAndroid,
+  Platform,
+  Alert,
+  Linking
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import MyStatusBar from "../../components/myStatusBar";
 import {
   Colors,
@@ -17,7 +21,7 @@ import {
   screenWidth,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-
+import GeoLocation from 'react-native-geolocation-service'
 const nearByChargingStationsList = [
   {
     id: "1",
@@ -99,8 +103,68 @@ const enrouteChargingStationList = [
     isOpen: false,
   },
 ];
-
+const openSettings = () => {
+  Linking.openSettings();
+};
 const HomeScreen = ({ navigation }) => {
+  
+
+  const requestLocationPermision = async () => {
+    if (Platform.OS === 'android') {
+      const permission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+      if (!permission) {
+          const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+              {
+                  title: 'Location Permission',
+                  message: 'This app requires access to your location.',
+                  buttonNeutral: 'Ask Me Later',
+                  buttonNegative: 'Cancel',
+                  buttonPositive: 'OK',
+              }
+          );
+          console.log(granted)
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+              getCurrentLocation();
+          } else {
+              Alert.alert(
+                  'Permission Denied',
+                  'You need to allow location access to use this feature.',
+                  [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Settings', onPress: openSettings },
+                  ]
+              );
+          }
+      } else {
+          getCurrentLocation();
+      }
+  } else {
+      getCurrentLocation();
+  }
+  }
+  const [currentLocation, setCurrentLocation] = useState({latitude:null, longitude:null})
+
+  const getCurrentLocation = () => {
+    GeoLocation.getCurrentPosition(
+      (position) => {
+        const {latitude, longitude} = position.coords
+        setCurrentLocation({latitude: latitude, longitude: longitude})
+        console.log(`Latitude ${latitude} Longitude ${longitude}`)
+      },
+      (error) => {
+        console.error(error.code, error.message);
+      },
+      {enableHighAccuracy:true, timeout:1500, maximumAge: 10000}
+    )
+  }
+
+  useEffect(() => {
+    requestLocationPermision()
+  },[])
+
+  console.log(currentLocation)
+  
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
