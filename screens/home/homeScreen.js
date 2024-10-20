@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import MyStatusBar from "../../components/myStatusBar";
 import {
   Colors,
@@ -17,6 +17,8 @@ import {
   screenWidth,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const nearByChargingStationsList = [
   {
@@ -366,9 +368,28 @@ const HomeScreen = ({ navigation }) => {
   }
 
   function welcomeInfo() {
+    const [userInfo, setUserInfo] = useState({});
+
+    const getUserInfo = async () => {
+      try {
+        const userInfoString = await AsyncStorage.getItem('userInfo');
+        if (userInfoString) {
+          setUserInfo(JSON.parse(userInfoString));
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+
+    useFocusEffect(
+      useCallback(() => {
+        getUserInfo();
+      }, [])
+    );
+
     return (
       <View style={{ margin: Sizes.fixPadding * 2.0 }}>
-        <Text style={{ ...Fonts.blackColor26SemiBold }}>Welcome John,</Text>
+        <Text style={{ ...Fonts.blackColor26SemiBold }}>{userInfo.name},</Text>
         <Text style={{ ...Fonts.grayColor18Regular }}>
           Find charging station now
         </Text>

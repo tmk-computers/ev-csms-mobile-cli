@@ -23,6 +23,8 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
 import { ENV } from '@env';
 import { setupMockApis } from '../../api/mockApi';
 import { checkUserExists } from '../../api/realApi';
+import SigninWithGoogle from "./SigninWithGoogle/SigninWithGoogle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Use mock API only in development
 if (ENV === 'development') {
@@ -42,7 +44,8 @@ const SigninScreen = ({ navigation }) => {
   };
 
   useFocusEffect(
-    useCallback(() => {
+    useCallback(async () => {
+      await AsyncStorage.setItem('userInfo', '')
       BackHandler.addEventListener("hardwareBackPress", backAction);
       navigation.addListener("gestureEnd", backAction);
       return () => {
@@ -61,6 +64,12 @@ const SigninScreen = ({ navigation }) => {
 
   const [backClickCount, setBackClickCount] = useState(0);
   const [mobileNumber, setMobileNumber] = useState("");
+  const [mobileLoginSelected, setMobileLoginSelected] = useState(false)
+
+  const handlerOnSocialMediaLoginSuccess = async (userInfo) => {
+    await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo))
+    navigation.push("BottomTabBar")
+  }
 
   const handleCheckUserExists = async () => {
     try {
@@ -72,6 +81,10 @@ const SigninScreen = ({ navigation }) => {
       const { success, data } = await checkUserExists(mobileNumber);
 
       if (success && data.exists) {
+        await AsyncStorage.setItem('userInfo', JSON.stringify({
+          contact : mobileNumber,
+          type: 'internal'
+        }))
         // User exists, navigate to OTP Verification screen
         navigation.push("Verification", { mobileNumber });
       } else {
@@ -93,14 +106,41 @@ const SigninScreen = ({ navigation }) => {
           automaticallyAdjustKeyboardInsets={true}
           showsVerticalScrollIndicator={false}
         >
-          {mobileNumberInfo()}
-          {continueButton()}
-          {SkipButton()}
+          {signInMethods()}
+          
         </ScrollView>
       </View>
       {exitInfo()}
     </View>
   );
+
+  function signInMethods() {
+
+    return (
+      <>
+      {
+        mobileLoginSelected ?
+        renderMobileLoginScreen() : 
+        <View>
+          {SigninWithMobileButton()}
+          {<SigninWithGoogle onSuccess={handlerOnSocialMediaLoginSuccess} />}
+          {SkipButton()}
+        </View>
+      }
+      </>
+    )
+
+  }
+
+  function renderMobileLoginScreen() {
+    return (
+      <>
+      {mobileNumberInfo()}
+      {continueButton()}
+      {backButton()}
+      </>
+    )
+  }
 
   function continueButton() {
     return (
@@ -110,6 +150,32 @@ const SigninScreen = ({ navigation }) => {
         style={{ ...commonStyles.button,borderRadius:Sizes.fixPadding-5.0, margin: Sizes.fixPadding * 2.0 }}
       >
         <Text style={{ ...Fonts.whiteColor18SemiBold }}>Continue</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function backButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => setMobileLoginSelected(false)}
+        style={{ ...commonStyles.button,borderRadius:Sizes.fixPadding-5.0, margin: Sizes.fixPadding * 2.0 }}
+      >
+        <Text style={{ ...Fonts.whiteColor18SemiBold }}>Back</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function SigninWithMobileButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          setMobileLoginSelected(true)
+        }}
+        style={{ ...commonStyles.button, borderRadius: Sizes.fixPadding - 5.0, margin: Sizes.fixPadding * 2.0 }}
+      >
+        <Text style={{ ...Fonts.whiteColor18SemiBold }}>Sign in with mobile number</Text>
       </TouchableOpacity>
     );
   }

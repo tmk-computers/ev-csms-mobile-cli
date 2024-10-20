@@ -22,6 +22,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ENV } from '@env';
 import { setupMockApis } from '../../api/mockApi';
 import { signupUser } from '../../api/realApi';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Mock the API if the environment is development
 if (ENV === 'development') {
@@ -40,6 +41,12 @@ const RegisterScreen = ({ navigation, route }) => {
     try {
       const data = await signupUser(mobileNumber, fullName, email); // Call the function from api.js
       if (data.success) {
+        const userInfo = JSON.parse(await AsyncStorage.getItem('userInfo'))
+        await AsyncStorage.setItem('userInfo', JSON.stringify({
+          ...userInfo,
+          name: fullName,
+          email: email,
+        }))
         navigation.push("Verification", { mobileNumber });
       } else {
         Alert.alert('Signup Failed', data.message);
