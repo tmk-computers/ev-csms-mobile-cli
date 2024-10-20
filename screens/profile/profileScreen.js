@@ -8,7 +8,7 @@ import {
   Platform,
   Modal
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Colors,
   Fonts,
@@ -18,6 +18,10 @@ import {
 } from '../../constants/styles';
 import MyStatusBar from '../../components/myStatusBar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import authUtil from '../auth/authUtil';
+
 
 const ProfileScreen = ({ navigation }) => {
 
@@ -97,7 +101,8 @@ const ProfileScreen = ({ navigation }) => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => {
+                    onPress={async () => {
+                      await authUtil.signoutFromGoogle()
                       setshowLogoutSheet(false);
                       navigation.push("Signin");
                     }}
@@ -118,11 +123,34 @@ const ProfileScreen = ({ navigation }) => {
   }
 
   function profileInfoWithOptions() {
+
+    const [userInfo, setUserInfo] = useState({});
+    const [profileType, setProfileType] = useState()
+
+    const getUserInfo = async () => {
+      try {
+        const userInfoString = await AsyncStorage.getItem('userInfo');
+        const userInfoParsed = JSON.parse(userInfoString)
+        if (userInfoParsed) {
+          setUserInfo(userInfoParsed)
+          setProfileType(userInfoParsed.type);
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+
+    useFocusEffect(
+      useCallback(() => {
+        getUserInfo();
+      }, [])
+    );
+
     return (
       <View style={styles.profileInfoWithOptionsWrapStyle}>
         <View style={{ alignItems: 'center' }}>
           <Image
-            source={require('../../assets/images/users/user4.png')}
+            source={{uri : userInfo.image}}
             style={styles.userImageStyle}
           />
         </View>
@@ -132,13 +160,15 @@ const ProfileScreen = ({ navigation }) => {
             marginTop: Sizes.fixPadding,
             marginBottom: Sizes.fixPadding,
           }}>
-          <Text style={{ ...Fonts.blackColor18SemiBold }}>Peter Jones</Text>
-          <Text style={{ ...Fonts.grayColor16Medium }}>+1 1234567890</Text>
+          <Text style={{ ...Fonts.blackColor18SemiBold }}>{userInfo.name}</Text>
+          <Text style={{ ...Fonts.grayColor16Medium }}>{userInfo.email || userInfo.contact}</Text>
         </View>
         <View>
           {profileOption({
             option: 'Edit Profile',
             icon: require('../../assets/images/icons/user.png'),
+            disabled : profileType && profileType === 'external',
+            tooltipMessage : profileType === 'external' ? `Profile signed in with ${userInfo.service} cannot be edited ` : '',
             onPress: () => {
               navigation.push('EditProfile');
             },
@@ -228,38 +258,63 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
-  function profileOption({ option, icon, onPress }) {
+  function profileOption({ option, icon, onPress, tooltipMessage, disabled = false }) {
+    const [tooltipVisible, setTooltipVisible] = useState(false);
+
+    const handleLongPress = () => {
+      setTooltipVisible(true);
+    };
+
     return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={onPress}
-        style={{
-          ...commonStyles.rowSpaceBetween,
-          marginBottom: Sizes.fixPadding * 2.0,
-        }}>
-        <View style={{ ...commonStyles.rowAlignCenter, flex: 1 }}>
-          <View style={styles.optionIconWrapper}>
-            <Image
-              source={icon}
-              style={{ width: 24.0, height: 24.0, resizeMode: 'contain' }}
-            />
+      <View>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            if(disabled){
+              setTooltipVisible(true)
+              setTimeout(() => {
+                setTooltipVisible(false)
+              }, 2000)
+              return
+            }
+            onPress()
+          }}
+          onLongPress={disabled ? handleLongPress : null}
+          onPressOut={() => setTooltipVisible(false)}
+          style={{
+            ...commonStyles.rowSpaceBetween,
+            marginBottom: Sizes.fixPadding * 2.0,
+            opacity: disabled ? 0.4 : 1
+          }}>
+          <View style={{ ...commonStyles.rowAlignCenter, flex: 1 }}>
+            <View style={styles.optionIconWrapper}>
+              <Image
+                source={icon}
+                style={{ width: 24.0, height: 24.0, resizeMode: 'contain' }}
+              />
+            </View>
+            <Text
+              numberOfLines={1}
+              style={{
+                ...Fonts.blackColor18Medium,
+                marginLeft: Sizes.fixPadding * 1.5,
+                flex: 1,
+              }}>
+              {option}
+            </Text>
           </View>
-          <Text
-            numberOfLines={1}
-            style={{
-              ...Fonts.blackColor18Medium,
-              marginLeft: Sizes.fixPadding * 1.5,
-              flex: 1,
-            }}>
-            {option}
+          <MaterialIcons
+            name="arrow-forward-ios"
+            size={15.0}
+            color={Colors.primaryColor}
+          />
+        </TouchableOpacity>
+        { tooltipVisible && <View style={styles.disabledOptionInfo}>
+          <Text style={{ ...Fonts.whiteColor14Medium }}>
+            {tooltipMessage}
           </Text>
-        </View>
-        <MaterialIcons
-          name="arrow-forward-ios"
-          size={15.0}
-          color={Colors.primaryColor}
-        />
-      </TouchableOpacity>
+        </View>}
+      </View>
     );
   }
 
@@ -329,4 +384,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: Sizes.fixPadding * 2.0,
   },
+  disabledOptionInfo: {
+    backgroundColor: Colors.lightBlackColor,
+    position: "absolute",
+    bottom: 30,
+    alignSelf: "center",
+    borderRadius: Sizes.fixPadding * 2.0,
+    paddingHorizontal: Sizes.fixPadding + 5.0,
+    paddingVertical: Sizes.fixPadding,
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "174661613395",
+    "project_id": "ev-csms-mobile-cli",
+    "storage_bucket": "ev-csms-mobile-cli.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:174661613395:android:3959b5adb8debf1bedd3a6",
+        "android_client_info": {
+          "package_name": "com.rncli_chargeplus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "174661613395-ahjibcn6egvcfk73b2ks3jn7s8470ms6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rncli_chargeplus",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "174661613395-ddtfki7tpvohilb1htfb86imt4t0is7e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY9Xv8y7ugZV_bz05XclL69bCzjbsgImw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "174661613395-ddtfki7tpvohilb1htfb86imt4t0is7e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
