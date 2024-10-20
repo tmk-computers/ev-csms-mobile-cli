@@ -17,6 +17,7 @@ import {
   Fonts,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 
 const width = screenWidth;
 const cardWidth = width / 1.15;
@@ -28,21 +29,6 @@ const localImageMap = {
   'charging_station3.png': require('../../assets/images/chargingStations/charging_station3.png'),
   'charging_station4.png': require('../../assets/images/chargingStations/charging_station4.png'),
   'charging_station5.png': require('../../assets/images/chargingStations/charging_station5.png'),
-};
-
-// Utility function to check if the stationImage is a URL
-const isImageUrl = (imagePath) => {
-  return typeof imagePath === 'string' && (imagePath.startsWith('http://') || imagePath.startsWith('https://'));
-};
-
-const getImageSource = (stationImage) => {
-  // Check if it's a URL or a local image name
-  if (isImageUrl(stationImage)) {
-    return { uri: stationImage }; // Return as a URL
-  } else if (localImageMap[stationImage]) {
-    return localImageMap[stationImage]; // Return the mapped require() result
-  }
-  return null; // If no valid image, return null
 };
 
 const ChargingStationsOnMapScreen = ({ navigation, route }) => {
@@ -227,7 +213,7 @@ const ChargingStationsOnMapScreen = ({ navigation, route }) => {
               />
             ) : (
               <Image
-                source={getImageSource(item.stationImage)}
+                source={getImageSource(item.stationImage, localImageMap)}
                 style={styles.enrouteChargingStationImage}
               />
             )}
