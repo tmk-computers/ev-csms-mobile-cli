@@ -13,6 +13,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ENV } from '@env';
 import { setupMockApis } from '../api/mockApi';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import MyStatusBar from "./myStatusBar";
 
 // Mock API for development
 if (ENV === 'development') {
