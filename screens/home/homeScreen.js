@@ -5,8 +5,7 @@ import {
   View,
   Image,
   ScrollView,
-  TouchableOpacity,
-  PermissionsAndroid
+  TouchableOpacity
 } from "react-native";
 import React, { useState } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -21,32 +20,10 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ENV } from '@env';
 import { setupMockApis } from '../../api/mockApi';
-import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../../api/realApi'
-import Geolocation from 'react-native-geolocation-service';
-const requestLocationPermission = async () => {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: 'Geolocation Permission',
-        message: 'Can we access your location?',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'OK',
-      },
-    );
-    console.log('granted', granted);
-    if (granted === 'granted') {
-      console.log('You can use Geolocation');
-      return true;
-    } else {
-      console.log('You cannot use Geolocation');
-      return false;
-    }
-  } catch (err) {
-    return false;
-  }
-};
+import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../../api/realApi';
+import { getCurrentPosition } from '../../helpers/geoUtils';
+import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
+
 
 function setLatLon(latitude, longitude) {
   // Use mock API only in development
@@ -63,21 +40,6 @@ const localImageMap = {
   'charging_station5.png': require('../../assets/images/chargingStations/charging_station5.png'),
 };
 
-// Utility function to check if the stationImage is a URL
-const isImageUrl = (imagePath) => {
-  return typeof imagePath === 'string' && (imagePath.startsWith('http://') || imagePath.startsWith('https://'));
-};
-
-const getImageSource = (stationImage) => {
-  // Check if it's a URL or a local image name
-  if (isImageUrl(stationImage)) {
-    return { uri: stationImage }; // Return as a URL
-  } else if (localImageMap[stationImage]) {
-    return localImageMap[stationImage]; // Return the mapped require() result
-  }
-  return null; // If no valid image, return null
-};
-
 const HomeScreen = ({ navigation }) => {
 
   const [fullName, setFullName] = useState("Guest");  // Default name
@@ -87,37 +49,27 @@ const HomeScreen = ({ navigation }) => {
   const [enrouteErrorMessage, setEnrouteErrorMessage] = useState("");
   const [currentLocation, setCurrentLocation] = useState(null);
 
-
-
   const loadNearbyChargingStations = async () => {
     try {
-      const result = requestLocationPermission();
-      result.then(res => {
-        console.log('res is:', res);
-        if (res) {
-          Geolocation.getCurrentPosition(
-            async location => {
-              setLatLon(location?.coords?.latitude, location?.coords?.longitude);
-              setCurrentLocation(location);
-              console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
-              const { success, data } = await fetchNearbyChargingStations(location?.coords?.latitude, location?.coords?.longitude, 10);
-              if (success && Array.isArray(data) && data.length > 0) {
-                setNearByChargingStationsList(data);
-              } else {
-                setNearbyErrorMessage("No charging stations available nearby.");
-              }
-            },
-            error => {
-              // See error code charts below.
-              console.log(error.code, error.message);
-              setNearbyErrorMessage("Unable to fetch user's current location.");
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-          );
-        }
-      });
+      const location = await getCurrentPosition();
+      setLatLon(location?.coords?.latitude, location?.coords?.longitude);
+      setCurrentLocation(location);
+      console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
+
+      const { success, data } = await fetchNearbyChargingStations(
+        location?.coords?.latitude,
+        location?.coords?.longitude,
+        10
+      );
+
+      if (success && Array.isArray(data) && data.length > 0) {
+        setNearByChargingStationsList(data);
+      } else {
+        setNearbyErrorMessage("No charging stations available nearby.");
+      }
     } catch (error) {
-      setNearbyErrorMessage("Failed to fetch nearby charging stations.");
+      console.error(error);
+      setNearbyErrorMessage("Unable to fetch user's current location.");
     }
   };
 
@@ -206,7 +158,7 @@ const HomeScreen = ({ navigation }) => {
           />
         ) : (
           <Image
-            source={getImageSource(item.stationImage)}
+            source={getImageSource(item.stationImage, localImageMap)}
             style={styles.enrouteChargingStationImage}
           />
         )}
@@ -337,7 +289,7 @@ const HomeScreen = ({ navigation }) => {
             />
           ) : (
             <Image
-              source={getImageSource(item.stationImage)}
+              source={getImageSource(item.stationImage, localImageMap)}
               style={styles.nearByChargingStationImageStyle}
             />
           )}
