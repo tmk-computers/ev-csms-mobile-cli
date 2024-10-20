@@ -11,6 +11,7 @@ import FilterScreen from "./screens/filter/filterScreen";
 import SearchScreen from "./screens/search/searchScreen";
 import ChargingStationDetailScreen from "./screens/chargingStationDetail/chargingStationDetailScreen";
 import AllReviewScreen from "./screens/allReview/allReviewScreen";
+import ChargingStationReview from './screens/review/chargingStationReview';
 import DirectionScreen from "./screens/direction/directionScreen";
 import BookSlotScreen from "./screens/bookSlot/bookSlotScreen";
 import ConfirmDetailScreen from "./screens/confirmDetail/confirmDetailScreen";
@@ -56,6 +57,7 @@ function MyApp() {
                 <Stack.Screen name="Search" component={SearchScreen} />
                 <Stack.Screen name="ChargingStationDetail" component={ChargingStationDetailScreen} />
                 <Stack.Screen name="AllReview" component={AllReviewScreen} />
+                <Stack.Screen name="AddReview" component={ChargingStationReview} />
                 <Stack.Screen name="Direction" component={DirectionScreen} />
                 <Stack.Screen name="BookSlot" component={BookSlotScreen} />
                 <Stack.Screen name="ConfirmDetail" component={ConfirmDetailScreen} />
