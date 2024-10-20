@@ -18,14 +18,6 @@ import { fetchNearbyChargingStationsUsingAggregator } from '../../api/realApi';
 import Geocoder from 'react-native-geocoding';
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
-import { ENV } from '@env';
-import { setupMockApis } from '../../api/mockApi';
-
-// Mock the API if the environment is development
-if (ENV === 'development') {
-  setupMockApis();
-}
-
 
 const recentSearchesList = [];
 
@@ -44,8 +36,6 @@ const SearchScreen = ({navigation}) => {
   const [currentLocation, setCurrentLocation] = useState(null);
 
   useEffect(() => {
-    console.log('ENV:', process.env.NODE_ENV);
-    console.log('ENVFILE:', process.env.ENVFILE);
     Geocoder.init(Key.apiKey);
   }, []);
 

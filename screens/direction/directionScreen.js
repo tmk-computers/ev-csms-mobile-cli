@@ -7,22 +7,18 @@ import {
   commonStyles,
   screenWidth,
 } from "../../constants/styles";
-import MapView, { Marker ,PROVIDER_GOOGLE} from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { Key } from "../../constants/key";
 import MapViewDirections from "react-native-maps-directions";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MyStatusBar from "../../components/myStatusBar";
 
-const DirectionScreen = ({ navigation }) => {
-  const fromDefaultLocation = {
-    latitude: 22.572645,
-    longitude: 88.363892,
-  };
+const DirectionScreen = ({ navigation, route }) => {
 
-  const toDefaultLocation = {
-    latitude: 22.682584,
-    longitude: 88.431983,
-  };
+  const { fromLocation, toLocation } = route.params;
+
+  console.log("fromLocation", fromLocation);
+  console.log("toLocation", toLocation);
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -114,35 +110,48 @@ const DirectionScreen = ({ navigation }) => {
   }
 
   function mapView() {
+
+    // Calculate the midpoint between the fromLocation and toLocation
+    const latitudeMidpoint = (fromLocation.latitude + toLocation.latitude) / 2;
+    const longitudeMidpoint = (fromLocation.longitude + toLocation.longitude) / 2;
+
+    // Calculate distance between fromLocation and toLocation (haversine formula or manually)
+    const latDiff = Math.abs(fromLocation.latitude - toLocation.latitude);
+    const longDiff = Math.abs(fromLocation.longitude - toLocation.longitude);
+
+    // Adjust delta to fit both markers in the view
+    const latitudeDelta = latDiff * 1.5; // Adjust factor for padding
+    const longitudeDelta = longDiff * 1.5; // Adjust factor for padding
+
+
     return (
       <MapView
         style={{ flex: 1 }}
-        provider={PROVIDER_GOOGLE}
         initialRegion={{
-          latitude: 22.616363,
-          longitude: 88.393827,
-          latitudeDelta: 0.2,
-          longitudeDelta: 0.2,
+          latitude: latitudeMidpoint,
+          longitude: longitudeMidpoint,
+          latitudeDelta: Math.max(latitudeDelta, 0.2), // Minimum delta to prevent zooming too far in
+          longitudeDelta: Math.max(longitudeDelta, 0.2),
         }}
       >
         <MapViewDirections
-          origin={fromDefaultLocation}
-          destination={toDefaultLocation}
+          origin={fromLocation}
+          destination={toLocation}
           apikey={Key.apiKey}
           lineCap="square"
           strokeColor={Colors.primaryColor}
           strokeWidth={3}
         />
-        <Marker coordinate={fromDefaultLocation}>
+        <Marker coordinate={fromLocation}>
           <Image
             source={require("../../assets/images/icons/marker1.png")}
-            style={{ width: 40.0, height: 40.0,resizeMode:'contain' }}
+            style={{ width: 40.0, height: 40.0, resizeMode: 'contain' }}
           />
         </Marker>
-        <Marker coordinate={toDefaultLocation}>
+        <Marker coordinate={toLocation}>
           <Image
             source={require("../../assets/images/icons/marker.png")}
-            style={{ width: 40.0, height: 40.0,resizeMode:'contain' }}
+            style={{ width: 40.0, height: 40.0, resizeMode: 'contain' }}
           />
         </Marker>
       </MapView>

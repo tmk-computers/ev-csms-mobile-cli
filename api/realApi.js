@@ -1,4 +1,5 @@
-import { API_URL } from '@env';
+
+const API_URL = 'http://192.168.250.182:8080';
 
 /**
  * Function to handle signup API call.
@@ -251,7 +252,7 @@ export const fetchEnrouteChargingStations = async (sourcePlace, destinationPlace
     const data = await response.json();
     return { success: response.ok, data };
   } catch (error) {
-    console.error('Error fetching enroute charging stations:', JSON.stringify(error));
+    console.error('Error fetching enroute charging stations:',API_URL, JSON.stringify(error));
     return { success: false, error };
   }
 };

@@ -18,19 +18,9 @@ import {
   screenWidth,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { ENV } from '@env';
-import { setupMockApis } from '../../api/mockApi';
 import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../../api/realApi';
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
-
-
-function setLatLon(latitude, longitude) {
-  // Use mock API only in development
-  if (ENV === 'development') {
-    setupMockApis(latitude, longitude);
-  }
-}
 
 const localImageMap = {
   'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
@@ -52,7 +42,6 @@ const HomeScreen = ({ navigation }) => {
   const loadNearbyChargingStations = async () => {
     try {
       const location = await getCurrentPosition();
-      setLatLon(location?.coords?.latitude, location?.coords?.longitude);
       setCurrentLocation(location);
       console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
 

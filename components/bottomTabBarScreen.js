@@ -10,15 +10,8 @@ import FavoriteScreen from "../screens/favorite/favoriteScreen";
 import BookingScreen from "../screens/booking/bookingScreen";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { ENV } from '@env';
-import { setupMockApis } from '../api/mockApi';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MyStatusBar from "./myStatusBar";
-
-// Mock API for development
-if (ENV === 'development') {
-  setupMockApis();
-}
 
 const Tab = createBottomTabNavigator();
 

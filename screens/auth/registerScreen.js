@@ -19,14 +19,7 @@ import {
 } from "../../constants/styles";
 import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { ENV } from '@env';
-import { setupMockApis } from '../../api/mockApi';
 import { signupUser } from '../../api/realApi';
-
-// Mock the API if the environment is development
-if (ENV === 'development') {
-  setupMockApis();
-}
 
 const RegisterScreen = ({ navigation, route }) => {
   // Retrieve the mobileNumber passed from the SigninScreen

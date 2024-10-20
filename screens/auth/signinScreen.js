@@ -20,14 +20,7 @@ import MyStatusBar from "../../components/myStatusBar";
 import { useFocusEffect } from "@react-navigation/native";
 import IntlPhoneInput from "react-native-intl-phone-input";
 import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
-import { ENV } from '@env';
-import { setupMockApis } from '../../api/mockApi';
 import { checkUserExists } from '../../api/realApi';
-
-// Use mock API only in development
-if (ENV === 'development') {
-  setupMockApis();
-}
 
 const SigninScreen = ({ navigation }) => {
   const backAction = () => {

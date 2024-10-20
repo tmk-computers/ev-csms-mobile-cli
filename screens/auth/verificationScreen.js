@@ -22,14 +22,7 @@ import {
 import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { OtpInput } from 'react-native-otp-entry';
-import { ENV } from '@env';  // Import the environment variable
-import { setupMockApis } from '../../api/mockApi';
 import { verifyOtp } from '../../api/realApi';
-
-
-if (ENV === 'development') {
-  setupMockApis();
-}
 
 const VerificationScreen = ({ navigation, route }) => {
 
