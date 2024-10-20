@@ -10,6 +10,14 @@ import FavoriteScreen from "../screens/favorite/favoriteScreen";
 import BookingScreen from "../screens/booking/bookingScreen";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { ENV } from '@env';
+import { setupMockApis } from '../api/mockApi';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Mock API for development
+if (ENV === 'development') {
+  setupMockApis();
+}
 
 const Tab = createBottomTabNavigator();
 
@@ -25,10 +33,20 @@ const BottomTabBarScreen = ({ navigation }) => {
     }
   };
 
+  const loadProfileData = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      setIsLoggedIn(!!accessToken);
+    } catch (error) {
+      console.log("Error loading profile data: ", error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       BackHandler.addEventListener("hardwareBackPress", backAction);
       navigation.addListener("gestureEnd", backAction);
+      loadProfileData();
       return () => {
         BackHandler.removeEventListener("hardwareBackPress", backAction);
         navigation.removeListener("gestureEnd", backAction);
@@ -44,9 +62,11 @@ const BottomTabBarScreen = ({ navigation }) => {
   }
 
   const [backClickCount, setBackClickCount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
+      <MyStatusBar />
       <Tab.Navigator
         screenOptions={{
           tabBarActiveTintColor: Colors.primaryColor,
@@ -102,50 +122,54 @@ const BottomTabBarScreen = ({ navigation }) => {
               ),
           }}
         />
-        <Tab.Screen
-          name="Booking"
-          component={BookingScreen}
-          options={{
-            tabBarIcon: ({ focused }) =>
-              focused ? (
-                <View style={styles.selectedTabCircleStyle}>
-                  <MaterialIcons
-                    name="receipt-long"
-                    size={24}
-                    color={Colors.whiteColor}
-                  />
-                </View>
-              ) : (
-                <MaterialIcons
-                  name="receipt-long"
-                  size={24}
-                  color={Colors.primaryColor}
-                />
-              ),
-          }}
-        />
-        <Tab.Screen
-          name="Favorite"
-          component={FavoriteScreen}
-          options={{
-            tabBarIcon: ({ focused }) =>
-              focused ? (
-                <View style={styles.selectedTabCircleStyle}>
-                  <MaterialIcons
-                    name="favorite"
-                    size={24}
-                    color={Colors.whiteColor}
-                  />
-                </View>
-              ) : (
-                <MaterialIcons
-                  name="favorite"
-                  size={24}
-                  color={Colors.primaryColor}
-                />
-              ),
-          }}
-        />
+        {isLoggedIn && (
+          <>
+            <Tab.Screen
+              name="Booking"
+              component={BookingScreen}
+              options={{
+                tabBarIcon: ({ focused }) =>
+                  focused ? (
+                    <View style={styles.selectedTabCircleStyle}>
+                      <MaterialIcons
+                        name="receipt-long"
+                        size={24}
+                        color={Colors.whiteColor}
+                      />
+                    </View>
+                  ) : (
+                    <MaterialIcons
+                      name="receipt-long"
+                      size={24}
+                      color={Colors.primaryColor}
+                    />
+                  ),
+              }}
+            />
+            <Tab.Screen
+              name="Favorite"
+              component={FavoriteScreen}
+              options={{
+                tabBarIcon: ({ focused }) =>
+                  focused ? (
+                    <View style={styles.selectedTabCircleStyle}>
+                      <MaterialIcons
+                        name="favorite"
+                        size={24}
+                        color={Colors.whiteColor}
+                      />
+                    </View>
+                  ) : (
+                    <MaterialIcons
+                      name="favorite"
+                      size={24}
+                      color={Colors.primaryColor}
+                    />
+                  ),
+              }}
+            />
+          </>
+        )}
         <Tab.Screen
           name="Profile"
           component={ProfileScreen}
@@ -170,7 +194,7 @@ const BottomTabBarScreen = ({ navigation }) => {
         />
       </Tab.Navigator>
       {exitInfo()}
-    </>
+    </View>
   );
 
   function exitInfo() {
