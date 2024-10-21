@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useState, createRef, useEffect, useRef } from "react";
 import MyStatusBar from "../../components/myStatusBar";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import {
   Colors,
   screenWidth,
@@ -17,119 +17,29 @@ import {
   Fonts,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 
 const width = screenWidth;
 const cardWidth = width / 1.15;
 const SPACING_FOR_CARD_INSET = width * 0.1 - 30;
 
-const chargingSpotsList = [
-  {
-    coordinate: {
-      latitude: 22.6293867,
-      longitude: 88.4354486,
-    },
-    id: "1",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "BYD Charging Point",
-    stationAddress: "Near shell petrol station",
-    rating: 4.7,
-    totalStations: 8,
-    distance: "4.5 km",
-    isOpen: true,
-  },
-  {
-    coordinate: {
-      latitude: 22.6345648,
-      longitude: 88.4377279,
-    },
-    id: "2",
-    stationImage: require("../../assets/images/chargingStations/charging_station4.png"),
-    stationName: "TATA EStation",
-    stationAddress: "Near orange business hub",
-    rating: 3.9,
-    totalStations: 15,
-    distance: "5.7 km",
-    isOpen: false,
-  },
-  {
-    coordinate: {
-      latitude: 22.6281662,
-      longitude: 88.4410113,
-    },
-    id: "3",
-    stationImage: require("../../assets/images/chargingStations/charging_station3.png"),
-    stationName: "HP Charging Station",
-    stationAddress: "Near ananta business park",
-    rating: 4.9,
-    totalStations: 6,
-    distance: "2.1 km",
-    isOpen: true,
-  },
-  {
-    coordinate: {
-      latitude: 22.6341137,
-      longitude: 88.4497463,
-    },
-    id: "4",
-    stationImage: require("../../assets/images/chargingStations/charging_station6.png"),
-    stationName: "VIDA Station V1",
-    stationAddress: "Near opera street",
-    rating: 4.2,
-    totalStations: 15,
-    distance: "3.5 km",
-    isOpen: false,
-  },
-  {
-    coordinate: {
-      latitude: 22.6181,
-      longitude: 88.456747,
-    },
-    id: "5",
-    stationImage: require("../../assets/images/chargingStations/charging_station2.png"),
-    stationName: "BYD Charging Point",
-    stationAddress: "Near shell petrol station",
-    rating: 4.7,
-    totalStations: 8,
-    distance: "4.5 km",
-    isOpen: true,
-  },
-  {
-    coordinate: {
-      latitude: 22.640124,
-      longitude: 88.438968,
-    },
-    id: "6",
-    stationImage: require("../../assets/images/chargingStations/charging_station1.png"),
-    stationName: "TATA EStation",
-    stationAddress: "Near orange business hub",
-    rating: 3.9,
-    totalStations: 15,
-    distance: "5.7 km",
-    isOpen: false,
-  },
-  {
-    coordinate: {
-      latitude: 22.616357,
-      longitude: 88.442317,
-    },
-    id: "7",
-    stationImage: require("../../assets/images/chargingStations/charging_station7.png"),
-    stationName: "HP Charging Station",
-    stationAddress: "Near ananta business park",
-    rating: 4.9,
-    totalStations: 6,
-    distance: "2.1 km",
-    isOpen: true,
-  },
-];
+const localImageMap = {
+  'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
+  'charging_station2.png': require('../../assets/images/chargingStations/charging_station2.png'),
+  'charging_station3.png': require('../../assets/images/chargingStations/charging_station3.png'),
+  'charging_station4.png': require('../../assets/images/chargingStations/charging_station4.png'),
+  'charging_station5.png': require('../../assets/images/chargingStations/charging_station5.png'),
+};
 
-const ChargingStationsOnMapScreen = ({ navigation }) => {
+const ChargingStationsOnMapScreen = ({ navigation, route }) => {
+  const { currentLocation, chargingSpotsList } = route.params;
+
   const [markerList] = useState(chargingSpotsList);
   const [region] = useState({
-    latitude: 22.6292757,
-    longitude: 88.444781,
-    latitudeDelta: 0.03,
-    longitudeDelta: 0.03,
+    latitude: currentLocation?.coords?.latitude,
+    longitude: currentLocation?.coords?.longitude,
+    latitudeDelta: 0.20,
+    longitudeDelta: 0.20,
   });
 
   let mapAnimation = new Animated.Value(0);
@@ -152,10 +62,11 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
       const regionTimeout = setTimeout(() => {
         if (mapIndex !== index) {
           mapIndex = index;
-          const { coordinate } = markerList[index];
+          const { latitude, longitude } = markerList[index];
           _map.current.animateToRegion(
             {
-              ...coordinate,
+              latitude,
+              longitude,
               latitudeDelta: region.latitudeDelta,
               longitudeDelta: region.longitudeDelta,
             },
@@ -164,7 +75,7 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
         }
       }, 10);
     });
-  });
+  }, []);
 
   const interpolation = markerList.map((marker, index) => {
     const inputRange = [
@@ -196,7 +107,7 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
   const _scrollView = useRef(null);
 
   return (
-    <View style={{ flex: 1,backgroundColor:Colors.bodyBackColor }}>
+    <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
       <View style={{ flex: 1 }}>
         {markersInfo()}
@@ -229,7 +140,6 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
         ref={_map}
         style={{ flex: 1 }}
         initialRegion={region}
-        provider={PROVIDER_GOOGLE}
       >
         {markerList.map((marker, index) => {
           const scaleStyle = {
@@ -242,7 +152,7 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
           return (
             <Marker
               key={index}
-              coordinate={marker.coordinate}
+              coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
               onPress={(e) => onMarkerPress(e)}
             >
               <Animated.View style={styles.markerStyle}>
@@ -292,14 +202,21 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
         {markerList.map((item, index) => (
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.push("ChargingStationDetail")}
+            onPress={() => navigation.push("ChargingStationDetail", { "chargingStationId": item.id })}
             key={index}
             style={styles.enrouteChargingStationWrapStyle}
           >
-            <Image
-              source={item.stationImage}
-              style={styles.enrouteChargingStationImage}
-            />
+            {isImageUrl(item.stationImage) ? (
+              <Image
+                source={{ uri: item.stationImage }} // If it's a URL, use it directly
+                style={styles.enrouteChargingStationImage}
+              />
+            ) : (
+              <Image
+                source={getImageSource(item.stationImage, localImageMap)}
+                style={styles.enrouteChargingStationImage}
+              />
+            )}
             <View style={styles.enrouteStationOpenCloseWrapper}>
               <Text style={{ ...Fonts.whiteColor18Regular }}>
                 {item.isOpen ? "Open" : "Closed"}
@@ -348,7 +265,7 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
                         flex: 1,
                       }}
                     >
-                      {item.totalStations} Charging Points
+                      {item.totalPoints} Charging Points
                     </Text>
                   </View>
                 </View>
@@ -373,7 +290,7 @@ const ChargingStationsOnMapScreen = ({ navigation }) => {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
-                    navigation.push("Direction");
+                    navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
                   }}
                   style={styles.getDirectionButton}
                 >

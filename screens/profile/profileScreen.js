@@ -6,9 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Modal
-} from 'react-native';
-import React, { useState } from 'react';
+  Modal,
+} from "react-native";
+import React, { useState } from "react";
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Colors,
   Fonts,
@@ -20,8 +22,31 @@ import MyStatusBar from '../../components/myStatusBar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ProfileScreen = ({ navigation }) => {
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogoutSheet, setshowLogoutSheet] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+
+  const loadProfileData = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      if (accessToken) {
+        const storedFullName = await AsyncStorage.getItem('fullName');
+        const storedMobileNumber = await AsyncStorage.getItem('mobileNumber');
+        if (storedFullName) setFullName(storedFullName);
+        if (storedMobileNumber) setMobileNumber(storedMobileNumber);
+      }
+      setIsLoggedIn(!!accessToken);
+    } catch (error) {
+      console.log("Error loading profile data: ", error);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadProfileData();
+    }, [])
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -35,7 +60,7 @@ const ProfileScreen = ({ navigation }) => {
             paddingBottom: Sizes.fixPadding * 2.0,
           }}
         >
-          {profileInfoWithOptions()}
+          {isLoggedIn ? profileInfoWithOptions() : guestOptions()}
         </ScrollView>
       </View>
       {logoutSheet()}
@@ -43,6 +68,16 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   function logoutSheet() {
+    const onLogoutPress = async () => {
+      await AsyncStorage.removeItem('email');
+      await AsyncStorage.removeItem('fullName');
+      await AsyncStorage.removeItem('mobileNumber');
+      await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('refreshToken');
+      await AsyncStorage.removeItem('expiresIn');
+      setshowLogoutSheet(false);
+      navigation.push("Signin");
+    }
     return (
       <Modal
         animationType="slide"
@@ -97,10 +132,7 @@ const ProfileScreen = ({ navigation }) => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => {
-                      setshowLogoutSheet(false);
-                      navigation.push("Signin");
-                    }}
+                    onPress={onLogoutPress}
                     style={{
                       ...styles.logoutButtonStyle,
                       ...styles.sheetButtonStyle,
@@ -120,72 +152,88 @@ const ProfileScreen = ({ navigation }) => {
   function profileInfoWithOptions() {
     return (
       <View style={styles.profileInfoWithOptionsWrapStyle}>
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: "center" }}>
           <Image
-            source={require('../../assets/images/users/user4.png')}
+            source={require("../../assets/images/users/user4.png")}
             style={styles.userImageStyle}
           />
         </View>
         <View
           style={{
-            alignItems: 'center',
+            alignItems: "center",
             marginTop: Sizes.fixPadding,
             marginBottom: Sizes.fixPadding,
           }}>
-          <Text style={{ ...Fonts.blackColor18SemiBold }}>Peter Jones</Text>
-          <Text style={{ ...Fonts.grayColor16Medium }}>+1 1234567890</Text>
+          <Text style={{ ...Fonts.blackColor18SemiBold }}>{fullName || "Full Name"}</Text>
+          <Text style={{ ...Fonts.grayColor16Medium }}>{mobileNumber || "Mobile Number"}</Text>
         </View>
         <View>
           {profileOption({
-            option: 'Edit Profile',
-            icon: require('../../assets/images/icons/user.png'),
+            option: "Edit Profile",
+            icon: require("../../assets/images/icons/user.png"),
             onPress: () => {
-              navigation.push('EditProfile');
+              navigation.push("EditProfile");
             },
           })}
           {profileOption({
-            option: 'My Bookings',
-            icon: require('../../assets/images/icons/calendar.png'),
+            option: "My Bookings",
+            icon: require("../../assets/images/icons/calendar.png"),
             onPress: () => {
-              navigation.navigate('Booking');
+              navigation.navigate("Booking");
             },
           })}
           {profileOption({
-            option: 'Notifications',
-            icon: require('../../assets/images/icons/notification.png'),
+            option: "Notifications",
+            icon: require("../../assets/images/icons/notification.png"),
             onPress: () => {
-              navigation.push('Notification');
+              navigation.push("Notification");
             },
           })}
           {profileOption({
-            option: 'Terms & Condition',
-            icon: require('../../assets/images/icons/list.png'),
+            option: "Terms & Condition",
+            icon: require("../../assets/images/icons/list.png"),
             onPress: () => {
-              navigation.push('TermsAndConditions');
+              navigation.push("TermsAndConditions");
             },
           })}
           {profileOption({
-            option: 'FAQ',
-            icon: require('../../assets/images/icons/faq.png'),
+            option: "FAQ",
+            icon: require("../../assets/images/icons/faq.png"),
             onPress: () => {
-              navigation.push('Faq');
+              navigation.push("Faq");
             },
           })}
           {profileOption({
-            option: 'Privacy Policy',
-            icon: require('../../assets/images/icons/privacy_policy.png'),
+            option: "Privacy Policy",
+            icon: require("../../assets/images/icons/privacy_policy.png"),
             onPress: () => {
-              navigation.push('PrivacyPolicy');
+              navigation.push("PrivacyPolicy");
             },
           })}
           {profileOption({
-            option: 'Help',
-            icon: require('../../assets/images/icons/help.png'),
+            option: "Help",
+            icon: require("../../assets/images/icons/help.png"),
             onPress: () => {
-              navigation.push('Help');
+              navigation.push("Help");
             },
           })}
           {logoutInfo()}
+        </View>
+      </View>
+    );
+  }
+
+  function guestOptions() {
+    return (
+      <View style={styles.profileInfoWithOptionsWrapStyle}>
+        <View>
+          {profileOption({
+            option: "Login",
+            icon: require("../../assets/images/icons/user.png"),
+            onPress: () => {
+              navigation.push("Signin");
+            },
+          })}
         </View>
       </View>
     );
@@ -205,8 +253,8 @@ const ProfileScreen = ({ navigation }) => {
         <View style={{ ...commonStyles.rowAlignCenter, flex: 1 }}>
           <View style={styles.optionIconWrapper}>
             <Image
-              source={require('../../assets/images/icons/logout.png')}
-              style={{ width: 24.0, height: 24.0, resizeMode: 'contain' }}
+              source={require("../../assets/images/icons/logout.png")}
+              style={{ width: 24.0, height: 24.0, resizeMode: "contain" }}
             />
           </View>
           <Text
@@ -241,7 +289,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.optionIconWrapper}>
             <Image
               source={icon}
-              style={{ width: 24.0, height: 24.0, resizeMode: 'contain' }}
+              style={{ width: 24.0, height: 24.0, resizeMode: "contain" }}
             />
           </View>
           <Text
@@ -270,7 +318,7 @@ const ProfileScreen = ({ navigation }) => {
           ...Fonts.blackColor20SemiBold,
           margin: Sizes.fixPadding * 2.0,
         }}>
-        Profile
+        {isLoggedIn ? "Profile" : "Welcome, Guest"}
       </Text>
     );
   }
@@ -299,19 +347,19 @@ const styles = StyleSheet.create({
     width: 46.0,
     height: 46.0,
     borderRadius: 23.0,
-    backgroundColor: 'rgba(6, 124, 96, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(6, 124, 96, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   sheetButtonStyle: {
     flex: 1,
     ...commonStyles.shadow,
-    borderTopWidth: Platform.OS == 'ios' ? 0 : 1.0,
+    borderTopWidth: Platform.OS == "ios" ? 0 : 1.0,
     paddingHorizontal: Sizes.fixPadding,
     paddingVertical:
       Platform.OS == 'ios' ? Sizes.fixPadding + 3.0 : Sizes.fixPadding,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   cancelButtonStyle: {
     backgroundColor: Colors.whiteColor,
@@ -326,7 +374,7 @@ const styles = StyleSheet.create({
   logoutTextStyle: {
     marginTop: Sizes.fixPadding * 1.5,
     ...Fonts.blackColor20SemiBold,
-    textAlign: 'center',
+    textAlign: "center",
     marginHorizontal: Sizes.fixPadding * 2.0,
   },
 });

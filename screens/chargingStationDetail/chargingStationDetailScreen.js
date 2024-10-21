@@ -7,8 +7,10 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  Modal,
+  Button,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MyStatusBar from "../../components/myStatusBar";
 import {
   Colors,
@@ -23,7 +25,12 @@ import { LinearGradient } from "react-native-linear-gradient";
 import rating from "../../components/rating";
 import { Snackbar } from "react-native-paper";
 
-const aminitiesList = [
+import { fetchChargingStationDetails, fetchChargingStationConnectorDetails, fetchChargingStationCustomerReviews, addToFavorites, removeFromFavorites, isFavorite } from '../../api/realApi';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getCurrentPosition } from '../../helpers/geoUtils';
+import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
+
+const AllAminitiesList = [
   {
     id: "1",
     aminityImage: require("../../assets/images/aminities/aminity1.png"),
@@ -51,66 +58,175 @@ const aminitiesList = [
   },
 ];
 
-const connectionsList = [
-  {
-    id: "1",
-    connectionTypeImage: require("../../assets/images/connectionTypes/connection_type1.png"),
-    connectionType: "CCS",
-    capacity: "55 kW",
-    amountPerWalt: "($0.05/kW)",
-    takenSlot: 0,
-    totalSlot: 3,
-  },
-  {
-    id: "2",
-    connectionTypeImage: require("../../assets/images/connectionTypes/connection_type2.png"),
-    connectionType: "CCS2",
-    capacity: "55 kW",
-    amountPerWalt: "($0.05/kW)",
-    takenSlot: 2,
-    totalSlot: 5,
-  },
-  {
-    id: "3",
-    connectionTypeImage: require("../../assets/images/connectionTypes/connection_type3.png"),
-    connectionType: "Mennekes",
-    capacity: "34 kW",
-    amountPerWalt: "($0.02/kW)",
-    takenSlot: 6,
-    totalSlot: 6,
-  },
-];
+const localImageMap = {
+  'connection_type1.png': require("../../assets/images/connectionTypes/connection_type1.png"),
+  'connection_type2.png': require("../../assets/images/connectionTypes/connection_type2.png"),
+  'connection_type3.png': require("../../assets/images/connectionTypes/connection_type3.png"),
+  'user1.png': require("../../assets/images/users/user1.png"),
+  'user2.png': require("../../assets/images/users/user2.png"),
+  'user3.png': require("../../assets/images/users/user3.png"),
+};
 
-const dummyText =
-  "Lorem ipsum dolor sit amet consectetur. Vitae luctusmassa viverra eget pulvinar. Vestibulum ac cras estplatea natoque nec. Sed sed gravida platea viverra vel ac.Eu placerat sit lacus tellus. Faucibus et id a eros volutpatinterdum in tincidunt viverra.";
+const ChargingStationDetailScreen = ({ navigation, route }) => {
 
-const reviewsList = [
-  {
-    id: "1",
-    reviewerImage: require("../../assets/images/users/user1.png"),
-    reviewerName: "Andrew Anderson",
-    rating: 5.0,
-    review: dummyText,
-  },
-  {
-    id: "2",
-    reviewerImage: require("../../assets/images/users/user2.png"),
-    reviewerName: "Peter Jones",
-    rating: 4.0,
-    review: dummyText,
-  },
-  {
-    id: "3",
-    reviewerImage: require("../../assets/images/users/user3.png"),
-    reviewerName: "Emily Wood",
-    rating: 3.0,
-    review: dummyText,
-  },
-];
-
-const ChargingStationDetailScreen = ({ navigation }) => {
+  const [chargingStation, setChargingStation] = useState(null);
   const [inFavorite, setinFavorite] = useState(false);
   const [showSnackBar, setshowSnackBar] = useState(false);
+  const [token, setToken] = useState("");
+  const [aminitiesList, setAminitiesList] = useState([]);
+  const [connectionsList, setConnectionsList] = useState([]);
+  const [reviewsList, setReviewsList] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const fetchChargingStation = async (id) => {
+    try {
+      const { success, data } = await fetchChargingStationDetails(id);
+      console.log("Charging station details fetched.", success, data);
+      if (success && data) {
+        setChargingStation(data);
+        setinFavorite(data.favorite);
+
+        let availableAmenitiesList = [];
+
+        if (data.amenity.washroom) {
+          availableAmenitiesList.push(AllAminitiesList.find((item) => item.id === "1"));
+        }
+
+        if (data.amenity.children_playarea) {
+          availableAmenitiesList.push(AllAminitiesList.find((item) => item.id === "2"));
+        }
+
+        if (data.amenity.wifi) {
+          availableAmenitiesList.push(AllAminitiesList.find((item) => item.id === "3"));
+        }
+
+        if (data.amenity.foodcourt) {
+          availableAmenitiesList.push(AllAminitiesList.find((item) => item.id === "4"));
+        }
+
+        if (data.amenity.atm) {
+          availableAmenitiesList.push(AllAminitiesList.find((item) => item.id === "5"));
+        }
+
+        setAminitiesList(availableAmenitiesList)
+
+        console.log("Charging station details fetched successfully.");
+      } else {
+        console.log("Failed to fetch charging station details.", id);
+      }
+    } catch (error) {
+      console.log("Network error:", error);
+      console.log("Failed to fetch charging station details.", id);
+    }
+  };
+
+  const fetchChargingStationConnectors = async (id) => {
+    try {
+      const { success, data } = await fetchChargingStationConnectorDetails(id);
+      console.log("Charging station details fetched.", id, success, data);
+      if (success && data) {
+        setConnectionsList(data);
+
+        console.log("Charging station connectors fetched successfully.");
+      } else {
+        console.log("Failed to fetch charging station connector details.", id);
+      }
+    } catch (error) {
+      console.log("Network error:", error);
+      console.log("Failed to fetch charging station connector details.", id);
+    }
+  };
+
+  const fetchChargingStationReviews = async (id) => {
+    try {
+      const { success, data } = await fetchChargingStationCustomerReviews(id);
+      console.log("Charging station customer reviews fetched.", id, success, data);
+      if (success && data) {
+        setReviewsList(data);
+
+        console.log("Charging station customer reviews fetched successfully.");
+      } else {
+        console.log("Failed to fetch charging station customer review details.", id);
+      }
+    } catch (error) {
+      console.log("Network error:", error);
+      console.log("Failed to fetch charging station customer review details.", id);
+    }
+  };
+
+  const checkIsFavorite = async (accessToken, id) => {
+    try {
+      const { success, data } = await isFavorite(accessToken, id);
+      console.log("Checking if charging station is favorite.", success, data);
+      if (success && data) {
+        setinFavorite(data);
+      }
+    } catch (error) {
+      console.log("Network error:", error);
+      console.log("Failed to check if charging station is favorite.", id);
+    }
+  };
+
+  // Function to handle signup API call
+  const handleFavoritePress = async () => {
+    try {
+
+      if (!token) {
+        console.log("Please login to continue");
+        return;
+      }
+
+      if (inFavorite) {
+        const data = await removeFromFavorites(token, chargingStation.id); // Call the function from api.js
+        if (data.success) {
+          setinFavorite(!inFavorite);
+          setshowSnackBar(true);
+        } else {
+          console.log('Failed to remove from favorites', data.message);
+        }
+      } else {
+        const data = await addToFavorites(token, chargingStation.id); // Call the function from api.js
+        if (data.success) {
+          setinFavorite(!inFavorite);
+          setshowSnackBar(true);
+        } else {
+          console.log('Failed to add to favorites', data.message);
+        }
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      console.log('Error', error.message || 'An error occurred. Please try again.');
+    }
+  };
+ 
+
+  useEffect(() => {
+    async function fetchData() {
+      const location = await getCurrentPosition();
+      setCurrentLocation(location);
+      if (route.params?.chargingStationId) {
+        await fetchChargingStation(route.params.chargingStationId);
+        await fetchChargingStationConnectors(route.params.chargingStationId);
+        await fetchChargingStationReviews(route.params.chargingStationId);
+        const accessToken = await AsyncStorage.getItem("accessToken");
+        if (accessToken) {
+          setIsLoggedIn(true);
+          setToken(accessToken);
+          await checkIsFavorite(accessToken, route.params.chargingStationId);
+        } else {
+          console.log("Unable to get user's access token.");
+          return;
+        }
+      }
+    }
+
+    fetchData(); // Call the async function inside the useEffect
+
+  }, [route.params?.chargingStationId]); // Dependency array
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
@@ -125,33 +241,52 @@ const ChargingStationDetailScreen = ({ navigation }) => {
           contentContainerStyle={{ paddingBottom: Sizes.fixPadding * 5.0 }}
         />
       </View>
-      {bookSlotAndGetDirectionButton()}
+      {bookSlotAddReviewAndGetDirectionButton()}
       {snackBarInfo()}
     </View>
   );
 
-  function bookSlotAndGetDirectionButton() {
+  function bookSlotAddReviewAndGetDirectionButton() {
     return (
       <View style={styles.bottomButtonWrapper}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => {
-            navigation.push("BookSlot");
-          }}
-          style={{
-            ...styles.bookSlotAndGetDirectionButtonStyle,
-            backgroundColor: Colors.bodyBackColor,
-            borderTopColor: Colors.extraLightGrayColor,
-          }}
-        >
-          <Text numberOfLines={1} style={{ ...Fonts.primaryColor18Medium }}>
-            Book Slot
-          </Text>
-        </TouchableOpacity>
+        {isLoggedIn && (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.push("BookSlot");
+              }}
+              style={{
+                ...styles.bookSlotAndGetDirectionButtonStyle,
+                backgroundColor: Colors.bodyBackColor,
+                borderTopColor: Colors.extraLightGrayColor,
+              }}
+            >
+              <Text numberOfLines={1} style={{ ...Fonts.primaryColor12Medium }}>
+                Book Slot
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.push("AddReview", { chargingStationId: chargingStation.id });
+              }}
+              style={{
+                ...styles.bookSlotAndGetDirectionButtonStyle,
+                backgroundColor: Colors.bodyBackColor,
+                borderTopColor: Colors.extraLightGrayColor,
+              }}
+            >
+              <Text numberOfLines={1} style={{ ...Fonts.grayColor12Medium }}>
+                Add Review
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => {
-            navigation.push("Direction");
+            navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: chargingStation.latitude, longitude: chargingStation.longitude }, station: chargingStation });
           }}
           style={{
             ...styles.bookSlotAndGetDirectionButtonStyle,
@@ -159,7 +294,7 @@ const ChargingStationDetailScreen = ({ navigation }) => {
             borderTopColor: Colors.primaryColor,
           }}
         >
-          <Text numberOfLines={1} style={{ ...Fonts.whiteColor18Medium }}>
+          <Text numberOfLines={1} style={{ ...Fonts.whiteColor12Medium }}>
             Get Direction
           </Text>
         </TouchableOpacity>
@@ -201,7 +336,7 @@ const ChargingStationDetailScreen = ({ navigation }) => {
           >
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} style={{ ...Fonts.whiteColor20SemiBold }}>
-                Tesla charging station
+                {chargingStation?.name}
               </Text>
               <Text
                 numberOfLines={1}
@@ -210,20 +345,17 @@ const ChargingStationDetailScreen = ({ navigation }) => {
                   ...Fonts.grayColor14Medium,
                 }}
               >
-                A537, Colombo trade centre
+                {chargingStation?.address} {chargingStation?.pincode}
               </Text>
               <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-                Open: 06:00 AM to 11:00 PM
+                Open: {chargingStation?.operationalHours}
               </Text>
             </View>
             <MaterialIcons
               name={inFavorite ? "favorite" : "favorite-border"}
               color={Colors.whiteColor}
               size={35}
-              onPress={() => {
-                setinFavorite(!inFavorite);
-                setshowSnackBar(true);
-              }}
+              onPress={handleFavoritePress}
             />
           </View>
         </LinearGradient>
@@ -283,7 +415,7 @@ const ChargingStationDetailScreen = ({ navigation }) => {
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Image
-            source={item.reviewerImage}
+            source={isImageUrl(item.reviewerImage) ? { uri: item.reviewerImage } : getImageSource(item.reviewerImage, localImageMap)}
             style={{
               width: 60.0,
               height: 60.0,
@@ -297,11 +429,17 @@ const ChargingStationDetailScreen = ({ navigation }) => {
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               {rating({ rating: item.rating })}
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedReview(item);
+                setModalVisible(true);
+              }}
+            >
+              <Text style={{ ...Fonts.primaryColor14Medium }}>View Details</Text>
+            </TouchableOpacity>
           </View>
         </View>
-        <Text
-          style={{ ...Fonts.grayColor14Medium, marginTop: Sizes.fixPadding }}
-        >
+        <Text style={{ ...Fonts.grayColor14Medium, marginTop: Sizes.fixPadding }}>
           {item.review}
         </Text>
       </View>
@@ -309,10 +447,7 @@ const ChargingStationDetailScreen = ({ navigation }) => {
     return (
       <View style={{ marginTop: Sizes.fixPadding - 5.0 }}>
         <View style={styles.reviewHeaderWrapper}>
-          <Text
-            numberOfLines={1}
-            style={{ ...Fonts.blackColor20SemiBold, flex: 1 }}
-          >
+          <Text numberOfLines={1} style={{ ...Fonts.blackColor20SemiBold, flex: 1 }}>
             Reviews
           </Text>
           <Text
@@ -330,6 +465,38 @@ const ChargingStationDetailScreen = ({ navigation }) => {
           renderItem={renderItem}
           scrollEnabled={false}
         />
+        {/* Modal for displaying review details */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.modalView}>
+            {selectedReview && modalVisible && (
+              <>
+                <Text style={styles.modalText}>{selectedReview.reviewerName}</Text>
+                {/* <Text style={{ marginBottom: 15 }}>{selectedReview.review}</Text> */}
+                <Text>Charging experience</Text>
+                {rating({ rating: selectedReview.rating })}
+                <Text>Safety experience</Text>
+                {rating({ rating: selectedReview.rating })}
+                <Text>Ease experience</Text>
+                {rating({ rating: selectedReview.rating })}
+                <Text>Location accessibility</Text>
+                {rating({ rating: selectedReview.rating })}
+
+                <Text style={{ marginTop: Sizes.fixPadding }}>Review</Text>
+                <Text style={{ ...Fonts.grayColor14Medium }}>{selectedReview.review}</Text>
+                
+                {/* Add more details if necessary */}
+              </>
+            )}
+            <Button title="Close" onPress={() => setModalVisible(false)} />
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -344,10 +511,17 @@ const ChargingStationDetailScreen = ({ navigation }) => {
             marginVertical: Sizes.fixPadding * 1.5,
           }}
         >
-          <Image
-            source={item.connectionTypeImage}
-            style={{ width: 40.0, height: 40.0, resizeMode: "contain" }}
-          />
+          {isImageUrl(item.connectionTypeImage) ? (
+            <Image
+              source={{ uri: item.connectionTypeImage }} // If it's a URL, use it directly
+              style={{ width: 40.0, height: 40.0, resizeMode: "contain" }}
+            />
+          ) : (
+            <Image
+              source={getImageSource(item.connectionTypeImage, localImageMap)}
+              style={{ width: 40.0, height: 40.0, resizeMode: "contain" }}
+            />
+          )}
           <Text
             numberOfLines={1}
             style={{
@@ -358,10 +532,10 @@ const ChargingStationDetailScreen = ({ navigation }) => {
             {item.connectionType}
           </Text>
           <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-            {item.capacity}
+            {item.capacity} kW
           </Text>
           <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-            {item.amountPerWalt}
+            (${item.pricePerWatt}/kW)
           </Text>
         </View>
         <View style={styles.connectionAvailableSlotWrapper}>
@@ -413,7 +587,7 @@ const ChargingStationDetailScreen = ({ navigation }) => {
             marginHorizontal: Sizes.fixPadding * 2.0,
           }}
         >
-          Ameities
+          Amenities
         </Text>
         <FlatList
           data={aminitiesList}
@@ -486,5 +660,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: Colors.bodyBackColor,
     ...commonStyles.shadow,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  ratingWrapStyle: {
+    ...commonStyles.rowAlignCenter,
+    justifyContent: "center",
+    marginVertical: Sizes.fixPadding + 5.0,
   },
 });

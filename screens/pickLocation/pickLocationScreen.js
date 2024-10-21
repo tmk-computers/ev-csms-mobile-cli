@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput } from "react-native";
+import React, { useState, useEffect } from "react";
 import {
   Colors,
   Fonts,
@@ -15,12 +15,9 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import Key from '../../constants/key';
 import MyStatusBar from '../../components/myStatusBar';
 import Geocoder from 'react-native-geocoding';
+import { getCurrentPosition } from '../../helpers/geoUtils';
 
 const ASPECT_RATIO = screenWidth / screenHeight;
-const LATITUDE = 37.78825;
-const LONGITUDE = -122.4324;
-const LATITUDE_DELTA = 0.3;
-const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const SPACE = 0.01;
 
 const PickLocationScreen = ({ navigation, route }) => {
@@ -28,18 +25,33 @@ const PickLocationScreen = ({ navigation, route }) => {
     Geocoder.init(Key.apiKey);
   }, []);
 
+  const { currentLocation } = route.params;
+  const LATITUDE = currentLocation?.coords?.latitude;
+  const LONGITUDE = currentLocation?.coords?.longitude;
+  const LATITUDE_DELTA = 0.3;
+  const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
   const [currentmarker, setCurrentMarker] = useState({
-    latitude: LATITUDE - SPACE,
-    longitude: LONGITUDE - SPACE,
+    latitude: LATITUDE,
+    longitude: LONGITUDE,
   });
 
-  const [address, setAddress] = useState('San Fransisco');
-  const [search, setSearch] = useState('');
+  const [address, setAddress] = useState("Your location");
+  const [location, setLocation] = useState(null);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const currentLocation = await getCurrentPosition();
+      setLocation({
+        latitude: currentLocation?.coords?.latitude,
+        longitude: currentLocation?.coords?.longitude,});
+    })();
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
-      <View style={{ flex: 1, justifyContent: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center" }}>
         {mapView()}
         {searchFieldWithBackArrow()}
         <View style={styles.footer}>
@@ -79,8 +91,8 @@ const PickLocationScreen = ({ navigation, route }) => {
         activeOpacity={0.8}
         onPress={() => {
           navigation.navigate({
-            name: 'Enroute',
-            params: { address: address, addressFor: route.params.addressFor },
+            name: "Enroute",
+            params: { address: address, location: location, addressFor: route.params.addressFor },
             merge: true,
           });
         }}
@@ -132,6 +144,7 @@ const PickLocationScreen = ({ navigation, route }) => {
           <GooglePlacesAutocomplete
             placeholder={"Search location here"}
             onPress={(data) => {
+              console.log("search", data);
               setSearch(data.description);
               setTheMarkerAccordingSearch({ address: data.description });
             }}
@@ -168,7 +181,7 @@ const PickLocationScreen = ({ navigation, route }) => {
   function mapView() {
     return (
       <MapView
-        style={{ height: '100%' }}
+        style={{ height: "100%" }}
         region={{
           latitude: currentmarker.latitude,
           longitude: currentmarker.longitude,
@@ -177,17 +190,17 @@ const PickLocationScreen = ({ navigation, route }) => {
         }}
         showsUserLocation={true}
         followsUserLocation={true}
-        provider={PROVIDER_GOOGLE}>
+      >
         <Marker
           coordinate={currentmarker}
-          onDragEnd={e => {
+          onDragEnd={(e) => {
             setCurrentMarker(e.nativeEvent.coordinate);
             getAddress({ location: e.nativeEvent.coordinate });
           }}
           draggable>
           <Image
-            source={require('../../assets/images/icons/marker2.png')}
-            style={{ width: 40.0, height: 40.0, resizeMode: 'contain' }}
+            source={require("../../assets/images/icons/marker2.png")}
+            style={{ width: 40.0, height: 40.0, resizeMode: "contain" }}
           />
         </Marker>
       </MapView>
@@ -208,7 +221,7 @@ export default PickLocationScreen;
 
 const styles = StyleSheet.create({
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0.0,
     left: 0.0,
     right: 0.0,
@@ -218,12 +231,12 @@ const styles = StyleSheet.create({
     height: 40.0,
     borderRadius: 20.0,
     backgroundColor: Colors.whiteColor,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     ...commonStyles.shadow,
   },
   searchFieldWithBackArrowWrapStyle: {
-    position: 'absolute',
+    position: "absolute",
     top: 0.0,
     left: 0.0,
     right: 0.0,
@@ -237,7 +250,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Sizes.fixPadding * 2.0,
     paddingVertical: Sizes.fixPadding + 5.0,
     marginHorizontal: Sizes.fixPadding * 2.0,
-    justifyContent: 'center',
+    justifyContent: "center",
     ...commonStyles.rowAlignCenter,
     ...commonStyles.shadow,
   },
@@ -247,11 +260,11 @@ const styles = StyleSheet.create({
     borderRadius: 20.0,
     borderColor: Colors.primaryColor,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchFieldWrapStyle: {
-    flexDirection: 'row',
+    flexDirection: "row",
     flex: 1,
     backgroundColor: Colors.whiteColor,
     borderRadius: Sizes.fixPadding,

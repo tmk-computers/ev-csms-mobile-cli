@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Colors,
   Fonts,
@@ -17,43 +19,57 @@ import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { Snackbar } from "react-native-paper";
+import { fetchFavoriteChargingStations } from '../../api/realApi';
+import { getImageSource } from "../../helpers/imageUtils";
+import { getCurrentPosition } from '../../helpers/geoUtils';
 
-const favoritesList = [
-  {
-    key: "1",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "BYD Charging Point",
-    stationAddress: "Near shell petrol station",
-    rating: 4.7,
-    totalStations: 8,
-    distance: "4.5 km",
-    isOpen: true,
-  },
-  {
-    key: "2",
-    stationImage: require("../../assets/images/chargingStations/charging_station4.png"),
-    stationName: "TATA EStation",
-    stationAddress: "Near orange business hub",
-    rating: 3.9,
-    totalStations: 15,
-    distance: "5.7 km",
-    isOpen: false,
-  },
-  {
-    key: "3",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "HP Charging Station",
-    stationAddress: "Near ananta business park",
-    rating: 4.9,
-    totalStations: 6,
-    distance: "2.1 km",
-    isOpen: true,
-  },
-];
+const localImageMap = {
+  'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
+  'charging_station2.png': require('../../assets/images/chargingStations/charging_station2.png'),
+  'charging_station3.png': require('../../assets/images/chargingStations/charging_station3.png'),
+  'charging_station4.png': require('../../assets/images/chargingStations/charging_station4.png'),
+  'charging_station5.png': require('../../assets/images/chargingStations/charging_station5.png'),
+};
 
-const FavoriteScreen = ({navigation}) => {
+const FavoriteScreen = ({ navigation }) => {
   const [showSnackBar, setShowSnackBar] = useState(false);
-  const [listData, setListData] = useState(favoritesList);
+  const [listData, setListData] = useState([]);
+  const [token, settoken] = useState("");
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [favouriteErrorMessage, setFavouriteErrorMessage] = useState("");
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadFavouriteChargingStations();
+    }, [])
+  );
+
+  const loadFavouriteChargingStations = async () => {
+
+    const location = await getCurrentPosition();
+    setCurrentLocation(location);
+
+    try {
+      const storedToken = await AsyncStorage.getItem("accessToken");
+      if (storedToken)
+        settoken(storedToken);
+      else {
+        setFavouriteErrorMessage("Unable to get user's access token.");
+        console.log("Unable to get user's access token.");
+        return;
+      }
+      const { success, data } = await fetchFavoriteChargingStations(storedToken);
+      if (success && Array.isArray(data) && data.length > 0) {
+        setListData(data);
+      } else {
+        setListData([]);
+        console.log("No charging stations added to your favorite list.");
+      }
+    } catch (error) {
+      console.log("Network error:", error);
+      console.log("Failed to fetch favorite charging stations.");
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -120,12 +136,12 @@ const FavoriteScreen = ({navigation}) => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            navigation.push("ChargingStationDetail");
+            navigation.push("ChargingStationDetail", { "chargingStationId": data.item.id });
           }}
           style={styles.enrouteChargingStationWrapStyle}
         >
           <Image
-            source={data.item.stationImage}
+            source={getImageSource(data.item.stationImage, localImageMap)}
             style={styles.enrouteChargingStationImage}
           />
           <View style={styles.enrouteStationOpenCloseWrapper}>
@@ -173,7 +189,7 @@ const FavoriteScreen = ({navigation}) => {
                       flex: 1,
                     }}
                   >
-                    {data.item.totalStations} Charging Points
+                    {data.item.totalPoints} Charging Points
                   </Text>
                 </View>
               </View>
@@ -198,7 +214,7 @@ const FavoriteScreen = ({navigation}) => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
-                  navigation.push("Direction");
+                  navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: data.item.latitude, longitude: data.item.longitude }, station: data.item });
                 }}
                 style={styles.getDirectionButton}
               >

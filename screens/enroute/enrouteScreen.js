@@ -17,21 +17,34 @@ import {
 import { LinearGradient } from "react-native-linear-gradient";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MyStatusBar from "../../components/myStatusBar";
+import { getCurrentPosition } from '../../helpers/geoUtils';
 
 const EnRouteScreen = ({ navigation, route }) => {
   useEffect(() => {
+    fetchCurrentLocation();
+    
     if (route.params?.address) {
       if (route.params.addressFor === "pickup") {
         setPickupAddress(route.params.address);
+        setPickupLocation(route.params.location);
       } else {
         setDestinationAddress(route.params.address);
+        setDestinationLocation(route.params.location);
       }
     }
   }, [route.params?.address]);
 
+  const [pickupLocation, setPickupLocation] = useState(null);
   const [pickupAddress, setPickupAddress] = useState("");
+  const [destinationLocation, setDestinationLocation] = useState(null);
   const [destinationAddress, setDestinationAddress] = useState("");
   const [pickAlert, setpickAlert] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
+
+  const fetchCurrentLocation = async () => {
+    const location = await getCurrentPosition();
+    setCurrentLocation(location);
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -64,7 +77,9 @@ const EnRouteScreen = ({ navigation, route }) => {
         }}
         onPress={() => {
           if (pickupAddress && destinationAddress) {
-            navigation.push("EnrouteChargingStations");
+            console.log("Pickup address", pickupAddress);
+            console.log("Destination address", destinationAddress);
+            navigation.push("EnrouteChargingStations", {pickupLocation, destinationLocation});
           } else {
             setpickAlert(true);
             setTimeout(() => {
@@ -85,7 +100,7 @@ const EnRouteScreen = ({ navigation, route }) => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          navigation.push("PickLocation", { addressFor: "destination" });
+          navigation.push("PickLocation", { addressFor: "destination", currentLocation });
         }}
         style={{ ...styles.pickPointWrapStyle }}
       >
@@ -115,7 +130,7 @@ const EnRouteScreen = ({ navigation, route }) => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          navigation.push("PickLocation", { addressFor: "pickup" });
+          navigation.push("PickLocation", { addressFor: "pickup", currentLocation });
         }}
         style={{ ...styles.pickPointWrapStyle, marginTop: Sizes.fixPadding }}
       >

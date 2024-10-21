@@ -11,8 +11,9 @@ import {
   Alert,
   Linking
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import MyStatusBar from "../../components/myStatusBar";
+import React, { useState } from "react";
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Colors,
   Fonts,
@@ -21,153 +22,86 @@ import {
   screenWidth,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import GeoLocation from 'react-native-geolocation-service'
-const nearByChargingStationsList = [
-  {
-    id: "1",
-    stationImage: require("../../assets/images/chargingStations/charging_station2.png"),
-    stationName: "Apex Charging Point",
-    stationAddress: "Near shell petrol station",
-    rating: 4.7,
-    totalStations: 8,
-    isOpen: true,
-  },
-  {
-    id: "2",
-    stationImage: require("../../assets/images/chargingStations/charging_station3.png"),
-    stationName: "Horizon EV Station",
-    stationAddress: "Near apex hospital",
-    rating: 4.2,
-    totalStations: 18,
-    isOpen: true,
-  },
-  {
-    id: "3",
-    stationImage: require("../../assets/images/chargingStations/charging_station1.png"),
-    stationName: "Rapid EV Charge",
-    stationAddress: "Near shelby play ground",
-    rating: 4.2,
-    totalStations: 12,
-    isOpen: false,
-  },
-  {
-    id: "4",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "Tesla Recharge",
-    stationAddress: "Near nissan show room",
-    rating: 4.9,
-    totalStations: 22,
-    isOpen: true,
-  },
-];
+import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../../api/realApi';
+import { getCurrentPosition } from '../../helpers/geoUtils';
+import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 
-const enrouteChargingStationList = [
-  {
-    id: "1",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "BYD Charging Point",
-    stationAddress: "Near shell petrol station",
-    rating: 4.7,
-    totalStations: 8,
-    distance: "4.5 km",
-    isOpen: true,
-  },
-  {
-    id: "2",
-    stationImage: require("../../assets/images/chargingStations/charging_station4.png"),
-    stationName: "TATA EStation",
-    stationAddress: "Near orange business hub",
-    rating: 3.9,
-    totalStations: 15,
-    distance: "5.7 km",
-    isOpen: false,
-  },
-  {
-    id: "3",
-    stationImage: require("../../assets/images/chargingStations/charging_station5.png"),
-    stationName: "HP Charging Station",
-    stationAddress: "Near ananta business park",
-    rating: 4.9,
-    totalStations: 6,
-    distance: "2.1 km",
-    isOpen: true,
-  },
-  {
-    id: "4",
-    stationImage: require("../../assets/images/chargingStations/charging_station4.png"),
-    stationName: "VIDA Station V1",
-    stationAddress: "Near opera street",
-    rating: 4.2,
-    totalStations: 15,
-    distance: "3.5 km",
-    isOpen: false,
-  },
-];
-const openSettings = () => {
-  Linking.openSettings();
+const localImageMap = {
+  'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
+  'charging_station2.png': require('../../assets/images/chargingStations/charging_station2.png'),
+  'charging_station3.png': require('../../assets/images/chargingStations/charging_station3.png'),
+  'charging_station4.png': require('../../assets/images/chargingStations/charging_station4.png'),
+  'charging_station5.png': require('../../assets/images/chargingStations/charging_station5.png'),
 };
+
 const HomeScreen = ({ navigation }) => {
-  
 
-  const requestLocationPermision = async () => {
-    if (Platform.OS === 'android') {
-      const permission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-      if (!permission) {
-          const granted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-              {
-                  title: 'Location Permission',
-                  message: 'This app requires access to your location.',
-                  buttonNeutral: 'Ask Me Later',
-                  buttonNegative: 'Cancel',
-                  buttonPositive: 'OK',
-              }
-          );
-          console.log(granted)
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-              getCurrentLocation();
-          } else {
-              Alert.alert(
-                  'Permission Denied',
-                  'You need to allow location access to use this feature.',
-                  [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Settings', onPress: openSettings },
-                  ]
-              );
-          }
+  const [fullName, setFullName] = useState("Guest");  // Default name
+  const [nearByChargingStationsList, setNearByChargingStationsList] = useState([]);
+  const [enrouteChargingStationList, setEnrouteChargingStationList] = useState([]);
+  const [nearbyErrorMessage, setNearbyErrorMessage] = useState("");
+  const [enrouteErrorMessage, setEnrouteErrorMessage] = useState("");
+  const [currentLocation, setCurrentLocation] = useState(null);
+
+  const loadNearbyChargingStations = async () => {
+    try {
+      const location = await getCurrentPosition();
+      setCurrentLocation(location);
+      console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
+
+      const { success, data } = await fetchNearbyChargingStations(
+        location?.coords?.latitude,
+        location?.coords?.longitude,
+        10
+      );
+
+      if (success && Array.isArray(data) && data.length > 0) {
+        setNearByChargingStationsList(data);
       } else {
-          getCurrentLocation();
+        setNearbyErrorMessage("No charging stations available nearby.");
       }
-  } else {
-      getCurrentLocation();
-  }
-  }
-  const [currentLocation, setCurrentLocation] = useState({latitude:null, longitude:null})
+    } catch (error) {
+      console.error(error);
+      setNearbyErrorMessage("Unable to fetch user's current location.");
+    }
+  };
 
-  const getCurrentLocation = () => {
-    GeoLocation.getCurrentPosition(
-      (position) => {
-        const {latitude, longitude} = position.coords
-        setCurrentLocation({latitude: latitude, longitude: longitude})
-        console.log(`Latitude ${latitude} Longitude ${longitude}`)
-      },
-      (error) => {
-        console.error(error.code, error.message);
-      },
-      {enableHighAccuracy:true, timeout:1500, maximumAge: 10000}
-    )
-  }
+  const loadEnrouteChargingStations = async () => {
+    try {
+      let sourcePlace = "";
+      let destinationPlace = "";
+      const { success, data } = await fetchEnrouteChargingStations(sourcePlace, destinationPlace);
+      if (success && Array.isArray(data) && data.length > 0) {
+        setEnrouteChargingStationList(data);
+      } else {
+        setEnrouteErrorMessage("No enroute charging stations available.");
+      }
+    } catch (error) {
+      setEnrouteErrorMessage("Failed to fetch enroute charging stations.");
+    }
+  };
 
-  useEffect(() => {
-    requestLocationPermision()
-  },[])
+  const fetchFullName = async () => {
+    try {
+      const storedFullName = await AsyncStorage.getItem("fullName");  // Fetch name from AsyncStorage
+      if (storedFullName) {
+        setFullName(storedFullName);  // Set full name if found
+      }
+    } catch (error) {
+      console.error("Error fetching full name:", error);
+    }
+  };
 
-  console.log(currentLocation)
-  
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFullName();
+      loadNearbyChargingStations();
+      loadEnrouteChargingStations();
+    }, [])
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
-      <MyStatusBar />
       <View style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {welcomeInfo()}
@@ -184,7 +118,7 @@ const HomeScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => navigation.push("ChargingStationsOnMap")}
+        onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": enrouteChargingStationList })}
         style={styles.mapViewButton}
       >
         <MaterialIcons name="map" color={Colors.whiteColor} size={30} />
@@ -193,18 +127,34 @@ const HomeScreen = ({ navigation }) => {
   }
 
   function enrouteChargingStationInfo() {
+
+    if (enrouteErrorMessage) {
+      return <Text style={styles.messageText}>{enrouteErrorMessage}</Text>;
+    }
+
+    if (enrouteChargingStationList.length === 0) {
+      return <Text style={styles.messageText}>No enroute charging stations found...</Text>;
+    }
+
     const renderItem = ({ item }) => (
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          navigation.push("ChargingStationDetail");
+          navigation.push("ChargingStationDetail", { "chargingStationId": item.id });
         }}
         style={styles.enrouteChargingStationWrapStyle}
       >
-        <Image
-          source={item.stationImage}
-          style={styles.enrouteChargingStationImage}
-        />
+        {isImageUrl(item.stationImage) ? (
+          <Image
+            source={{ uri: item.stationImage }} // If it's a URL, use it directly
+            style={styles.enrouteChargingStationImage}
+          />
+        ) : (
+          <Image
+            source={getImageSource(item.stationImage, localImageMap)}
+            style={styles.enrouteChargingStationImage}
+          />
+        )}
         <View style={styles.enrouteStationOpenCloseWrapper}>
           <Text style={{ ...Fonts.whiteColor18Regular }}>
             {item.isOpen ? "Open" : "Closed"}
@@ -250,7 +200,7 @@ const HomeScreen = ({ navigation }) => {
                     flex: 1,
                   }}
                 >
-                  {item.totalStations} Charging Points
+                  {item.totalPoints} Charging Points
                 </Text>
               </View>
             </View>
@@ -270,12 +220,12 @@ const HomeScreen = ({ navigation }) => {
                 marginRight: Sizes.fixPadding - 5.0,
               }}
             >
-              {item.distance}
+              {`${item.distance} Km`}
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                navigation.push("Direction");
+                navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
               }}
               style={styles.getDirectionButton}
             >
@@ -307,19 +257,35 @@ const HomeScreen = ({ navigation }) => {
   }
 
   function nearByChargingStationInfo() {
+
+    if (nearbyErrorMessage) {
+      return <Text style={styles.messageText}>{nearbyErrorMessage}</Text>;
+    }
+
+    if (nearByChargingStationsList.length === 0) {
+      return <Text style={styles.messageText}>No nearby charging stations found...</Text>;
+    }
+
     const renderItem = ({ item }) => (
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          navigation.push("ChargingStationDetail");
+          navigation.push("ChargingStationDetail", { "chargingStationId": item.id });
         }}
         style={styles.nearByChargingStationWrapStyle}
       >
         <View>
-          <Image
-            source={item.stationImage}
-            style={styles.nearByChargingStationImageStyle}
-          />
+          {isImageUrl(item.stationImage) ? (
+            <Image
+              source={{ uri: item.stationImage }} // If it's a URL, use it directly
+              style={styles.nearByChargingStationImageStyle}
+            />
+          ) : (
+            <Image
+              source={getImageSource(item.stationImage, localImageMap)}
+              style={styles.nearByChargingStationImageStyle}
+            />
+          )}
           <View style={styles.nearByOpenCloseWrapper}>
             <Text style={{ ...Fonts.whiteColor18Regular }}>
               {item.isOpen ? "Open" : "Closed"}
@@ -353,12 +319,12 @@ const HomeScreen = ({ navigation }) => {
                 marginRight: Sizes.fixPadding - 5.0,
               }}
             >
-              {item.totalStations} Charging Points
+              {item.totalPoints} Charging Points
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => {
-                navigation.push("Direction");
+                navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
               }}
               style={styles.getDirectionButton}
             >
@@ -432,7 +398,7 @@ const HomeScreen = ({ navigation }) => {
   function welcomeInfo() {
     return (
       <View style={{ margin: Sizes.fixPadding * 2.0 }}>
-        <Text style={{ ...Fonts.blackColor26SemiBold }}>Welcome John,</Text>
+        <Text style={{ ...Fonts.blackColor26SemiBold }}>Welcome {fullName},</Text>
         <Text style={{ ...Fonts.grayColor18Regular }}>
           Find charging station now
         </Text>
@@ -444,6 +410,11 @@ const HomeScreen = ({ navigation }) => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  messageText: {
+    textAlign: 'center',
+    marginTop: Sizes.fixPadding * 2.0,
+    ...Fonts.grayColor18Regular,
+  },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
