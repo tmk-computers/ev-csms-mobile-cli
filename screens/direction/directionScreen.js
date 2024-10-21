@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, PermissionsAndroid, Platform } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, PermissionsAndroid, Platform, ScrollView } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Colors,
@@ -28,6 +28,8 @@ const DirectionScreen = ({ navigation, route }) => {
   const [lastInstruction, setLastInstruction] = useState(''); // Track the last spoken instruction to avoid repetition
   const [totalTime, setTotalTime] = useState(null); // Store total time to destination
   const [nextTurn, setNextTurn] = useState(''); // Store next turn instruction
+  const [showDirections, setShowDirections] = useState(false);
+  const [directions, setDirections] = useState([]);
 
   // Then in useEffect:
   useEffect(() => {
@@ -124,12 +126,25 @@ const DirectionScreen = ({ navigation, route }) => {
     return closestIndex; // Return the index of the closest point
   };
 
+  // Utility function to remove HTML tags
+  const stripHtmlTags = (html) => {
+    return html.replace(/<[^>]*>/g, ''); // Regular expression to remove HTML tags
+  };
+
   const onDirectionsReady = (result) => {
     setRouteCoordinates(result.coordinates);
     setTotalTime(result.duration); // Get the total travel time
 
+    // Extract detailed instructions for the steps
+    const steps = result.legs[0]?.steps.map((step, index) => ({
+      instruction: stripHtmlTags(step.html_instructions) || 'No instruction available',
+      distance: step.distance.text,
+      duration: step.duration.text
+    })) || [];
+    setDirections(steps);
+
     // Get the next turn instruction (if available)
-    const nextTurn = result.legs[0]?.steps[0]?.instructions || 'Proceed straight';
+    const nextTurn = stripHtmlTags(result.legs[0]?.steps[0]?.html_instructions) || 'Proceed straight';
     setNextTurn(nextTurn);
   };
 
@@ -261,6 +276,8 @@ const DirectionScreen = ({ navigation, route }) => {
         {backArrow()}
         {chargingSpotInfo()}
         {!navigationStarted && startNavigationButton()}
+        {viewDirectionsButton()}
+        {showDirections && renderDirectionsList()}
       </View>
     </View>
   );
@@ -274,6 +291,31 @@ const DirectionScreen = ({ navigation, route }) => {
       >
         <Text style={styles.navigationButtonText}>Start Navigation</Text>
       </TouchableOpacity>
+    );
+  }
+
+  function viewDirectionsButton() {
+    return (
+      <TouchableOpacity
+        style={styles.navigationButton}
+        activeOpacity={0.8}
+        onPress={() => setShowDirections(!showDirections)} // Toggle visibility
+      >
+        <Text style={styles.navigationButtonText}>View Directions</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function renderDirectionsList() {
+    return (
+      <ScrollView style={styles.directionsList}>
+        {directions.map((step, index) => (
+          <View key={index} style={styles.directionItem}>
+            <Text style={styles.directionText}>{index + 1}. {step.instruction}</Text>
+            <Text style={styles.directionSubText}>Distance: {step.distance}, Duration: {step.duration}</Text>
+          </View>
+        ))}
+      </ScrollView>
     );
   }
 
@@ -485,5 +527,25 @@ const styles = StyleSheet.create({
   },
   navigationButtonText: {
     ...Fonts.whiteColor18SemiBold,
-  }
+  },
+  directionsList: {
+    position: 'absolute',
+    bottom: 150, // Position above the buttons
+    left: 20,
+    right: 20,
+    backgroundColor: Colors.whiteColor,
+    padding: 10,
+    borderRadius: 8,
+    maxHeight: 300,
+    ...commonStyles.shadow,
+  },
+  directionItem: {
+    marginBottom: 10,
+  },
+  directionText: {
+    ...Fonts.blackColor16Medium,
+  },
+  directionSubText: {
+    ...Fonts.grayColor14Medium,
+  },
 });
