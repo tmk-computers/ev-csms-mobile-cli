@@ -46,11 +46,8 @@ function MyApp() {
                     ...TransitionPresets.SlideFromRightIOS,
                 }}
             >
-                {/* <Stack.Screen name="Splash" component={SplashScreen} options={{ ...TransitionPresets.DefaultTransition }} />
+                <Stack.Screen name="Splash" component={SplashScreen} options={{ ...TransitionPresets.DefaultTransition }} />
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="Signin" component={SigninScreen} />
-                <Stack.Screen name="Register" component={RegisterScreen} />
-                <Stack.Screen name="Verification" component={VerificationScreen} /> */}
                 <Stack.Screen name="BottomTabBar" component={BottomTabBarScreen} options={{ ...TransitionPresets.DefaultTransition }} />
                 <Stack.Screen name="AllChargingStations" component={AllChargingStationsScreen} />
                 <Stack.Screen name="Filter" component={FilterScreen} />
@@ -73,6 +70,9 @@ function MyApp() {
                 <Stack.Screen name="Faq" component={FaqScreen} />
                 <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
                 <Stack.Screen name="Help" component={HelpScreen} />
+                <Stack.Screen name="Signin" component={SigninScreen} />
+                <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name="Verification" component={VerificationScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
