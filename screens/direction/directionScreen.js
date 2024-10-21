@@ -83,16 +83,45 @@ const DirectionScreen = ({ navigation, route }) => {
     const id = Geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setCurrentLocation({ latitude, longitude });
+        const newLocation = { latitude, longitude };
+
+        // Update current location
+        setCurrentLocation(newLocation);
+
+        // Remove previous coordinates the user has passed
+        setRouteCoordinates((prevCoordinates) => {
+          // Find the closest point in the routeCoordinates
+          const closestIndex = findClosestCoordinateIndex(newLocation, prevCoordinates);
+
+          // Remove all points before the closest point
+          return prevCoordinates.slice(closestIndex);
+        });
 
         if (navigationStarted) {
           handleProximityCheck({ latitude, longitude });
+          updateMapCamera({ latitude, longitude });
         }
       },
       (error) => Alert.alert("Error", error.message),
       { enableHighAccuracy: true, distanceFilter: 10 }
     );
     setWatchId(id); // Store the watch ID to clear it later if needed
+  };
+
+  const findClosestCoordinateIndex = (currentLocation, routeCoordinates) => {
+    let minDistance = Infinity;
+    let closestIndex = 0;
+
+    // Iterate through routeCoordinates to find the closest point
+    routeCoordinates.forEach((coordinate, index) => {
+      const distance = calculateDistance(currentLocation, coordinate);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    return closestIndex; // Return the index of the closest point
   };
 
   const onDirectionsReady = (result) => {
@@ -205,7 +234,22 @@ const DirectionScreen = ({ navigation, route }) => {
       },
       pitch: 45, // Set the angle for a driving view
       heading: 0, // Initial heading
-      zoom: 16, // Zoom level for driving
+      zoom: 20, // Zoom level for driving
+    }, { duration: 1000 });
+  };
+
+  const updateMapCamera = (currentPosition) => {
+    const nextStep = routeCoordinates[stepIndex] || toLocation;
+    const heading = calculateHeading(currentPosition, nextStep);
+
+    mapRef.current.animateCamera({
+      center: {
+        latitude: currentPosition.latitude,
+        longitude: currentPosition.longitude,
+      },
+      pitch: 45,
+      heading: heading,  // Update heading dynamically
+      zoom: 20,
     }, { duration: 1000 });
   };
 
