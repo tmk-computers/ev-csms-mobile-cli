@@ -1,5 +1,5 @@
 
-const API_URL = 'http://192.168.250.182:8080';
+const API_URL = 'http://208.109.234.137:8080';
 
 /**
  * Function to handle signup API call.

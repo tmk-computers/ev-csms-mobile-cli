@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from "react-native";
 import React from "react";
 import {
   Colors,
@@ -15,7 +15,7 @@ import MyStatusBar from "../../components/myStatusBar";
 
 const DirectionScreen = ({ navigation, route }) => {
 
-  const { fromLocation, toLocation } = route.params;
+  const { fromLocation, toLocation, station } = route.params;
 
   console.log("fromLocation", fromLocation);
   console.log("toLocation", toLocation);
@@ -43,10 +43,10 @@ const DirectionScreen = ({ navigation, route }) => {
         </View>
         <View style={{ flex: 1, padding: Sizes.fixPadding }}>
           <Text numberOfLines={1} style={{ ...Fonts.blackColor18SemiBold }}>
-            BYD Charging Point
+            {station?.stationName || station?.name}
           </Text>
           <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-            Near shell petrol station
+            {station?.stationAddress || station?.address}
           </Text>
           <View
             style={{
@@ -74,7 +74,7 @@ const DirectionScreen = ({ navigation, route }) => {
                   flex: 1,
                 }}
               >
-                8 Charging Points
+                {station?.totalPoints || station?.noOfConnectors || 0} Charging Points
               </Text>
             </View>
           </View>
@@ -85,7 +85,7 @@ const DirectionScreen = ({ navigation, route }) => {
               marginTop: Sizes.fixPadding * 2.0,
             }}
           >
-            4.5 km
+            {station?.distance} km
           </Text>
         </View>
       </View>
@@ -106,6 +106,14 @@ const DirectionScreen = ({ navigation, route }) => {
           onPress={() => navigation.pop()}
         />
       </TouchableOpacity>
+    );
+  }
+
+  function handleError(errorMessage) {
+    Alert.alert(
+      "Route Not Found",
+      errorMessage || "Could not find a route between the locations.",
+      [{ text: "OK" }]
     );
   }
 
@@ -141,6 +149,13 @@ const DirectionScreen = ({ navigation, route }) => {
           lineCap="square"
           strokeColor={Colors.primaryColor}
           strokeWidth={3}
+          onError={(errorMessage) => {
+            if (errorMessage === "Error on GMAPS route request: ZERO_RESULTS") {
+              handleError("No route found between the selected locations.");
+            } else {
+              handleError(errorMessage);
+            }
+          }}
         />
         <Marker coordinate={fromLocation}>
           <Image

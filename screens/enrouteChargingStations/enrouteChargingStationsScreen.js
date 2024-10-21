@@ -349,7 +349,7 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
-                    navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude } });
+                    navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
                   }}
                   style={styles.getDirectionButton}
                 >

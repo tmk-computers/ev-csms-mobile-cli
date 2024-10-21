@@ -214,7 +214,7 @@ const FavoriteScreen = ({ navigation }) => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
-                  navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: data.item.latitude, longitude: data.item.longitude } });
+                  navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: data.item.latitude, longitude: data.item.longitude }, station: data.item });
                 }}
                 style={styles.getDirectionButton}
               >

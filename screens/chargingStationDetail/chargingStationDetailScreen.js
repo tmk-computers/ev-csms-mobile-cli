@@ -286,7 +286,7 @@ const ChargingStationDetailScreen = ({ navigation, route }) => {
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => {
-            navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: chargingStation.latitude, longitude: chargingStation.longitude } });
+            navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: chargingStation.latitude, longitude: chargingStation.longitude }, station: chargingStation });
           }}
           style={{
             ...styles.bookSlotAndGetDirectionButtonStyle,
