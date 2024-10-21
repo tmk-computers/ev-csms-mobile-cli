@@ -1,4 +1,4 @@
-package com.rncli_chargeplus
+package com.rapaidchargex
 
 import android.app.Application
 import com.facebook.react.PackageList
