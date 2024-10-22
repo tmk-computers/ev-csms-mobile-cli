@@ -20,7 +20,7 @@ import MyStatusBar from "../../components/myStatusBar";
 import { useFocusEffect } from "@react-navigation/native";
 import IntlPhoneInput from "react-native-intl-phone-input";
 import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
-import { checkUserExists } from '../../api/realApi';
+import { checkUserExists, socialLogin } from '../../api/realApi';
 import SigninWithGoogle from "./OAuth/signinwithgoogle/signinwithgoogle";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -57,11 +57,30 @@ const SigninScreen = ({ navigation }) => {
   const [backClickCount, setBackClickCount] = useState(0);
   const [mobileNumber, setMobileNumber] = useState("");
   const [mobileLoginSelected, setMobileLoginSelected] = useState(false)
+  const [isLoading, setisLoading] = useState(false);
 
   const handlerOnSocialMediaLoginSuccess = async (userInfo) => {
-    console.log(userInfo)
-    await AsyncStorage.setItem('fullName', userInfo.name)
-    navigation.push("BottomTabBar")
+    setisLoading(true);
+    console.log(userInfo);
+    const { success, data } = await socialLogin(userInfo.email, userInfo.name, '', userInfo.service);
+    if (success && data) {
+      const { token, refreshToken, expiresIn } = data;
+
+      await AsyncStorage.setItem('accessToken', token);
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+      await AsyncStorage.setItem('expiresIn', expiresIn.toString());
+
+      await AsyncStorage.setItem('fullName', userInfo.name);
+      await AsyncStorage.setItem('mobileNumber', '');
+      await AsyncStorage.setItem('email', userInfo.email);
+
+      await AsyncStorage.setItem('socialLogin', 'true');
+      setisLoading(false);
+      navigation.push("BottomTabBar");
+    } else {
+      setisLoading(false);
+      Alert.alert('Social Login Failed', data.message || 'Invalid User Data. Please try again.');
+    }
   }
 
   const handleCheckUserExists = async () => {

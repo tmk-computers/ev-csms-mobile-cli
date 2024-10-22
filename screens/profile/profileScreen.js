@@ -26,6 +26,7 @@ const ProfileScreen = ({ navigation }) => {
   const [showLogoutSheet, setshowLogoutSheet] = useState(false);
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [isSocialLogin, setIsSocialLogin] = useState(false);
 
   const loadProfileData = async () => {
     try {
@@ -33,8 +34,12 @@ const ProfileScreen = ({ navigation }) => {
       if (accessToken) {
         const storedFullName = await AsyncStorage.getItem('fullName');
         const storedMobileNumber = await AsyncStorage.getItem('mobileNumber');
+        const storedEmail = await AsyncStorage.getItem('email');
+        const storedIsSocialLogin = await AsyncStorage.getItem('socialLogin');
+
         if (storedFullName) setFullName(storedFullName);
-        if (storedMobileNumber) setMobileNumber(storedMobileNumber);
+        if (storedMobileNumber) setMobileNumber(storedMobileNumber || storedEmail);
+        if (storedIsSocialLogin) setIsSocialLogin(storedIsSocialLogin === 'true');
       }
       setIsLoggedIn(!!accessToken);
     } catch (error) {
@@ -75,6 +80,7 @@ const ProfileScreen = ({ navigation }) => {
       await AsyncStorage.removeItem('accessToken');
       await AsyncStorage.removeItem('refreshToken');
       await AsyncStorage.removeItem('expiresIn');
+      await AsyncStorage.removeItem('socialLogin');
       setshowLogoutSheet(false);
       navigation.push("Signin");
     }
@@ -171,6 +177,8 @@ const ProfileScreen = ({ navigation }) => {
           {profileOption({
             option: "Edit Profile",
             icon: require("../../assets/images/icons/user.png"),
+            disabled : isSocialLogin ? true : false,
+            tooltipMessage : isSocialLogin ? `Profile signed in with social login cannot be edited ` : '',
             onPress: () => {
               navigation.push("EditProfile");
             },
