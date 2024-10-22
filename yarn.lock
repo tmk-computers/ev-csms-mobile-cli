@@ -290,7 +290,7 @@
     "@babel/plugin-syntax-async-generators" "^7.8.4"
 
 "@babel/plugin-proposal-class-properties@^7.13.0", "@babel/plugin-proposal-class-properties@^7.18.0":
-  version "7.18.6"
+  "version" "7.18.6"
   dependencies:
     "@babel/helper-create-class-features-plugin" "^7.18.6"
     "@babel/helper-plugin-utils" "^7.18.6"
@@ -320,7 +320,7 @@
     "@babel/plugin-syntax-numeric-separator" "^7.10.4"
 
 "@babel/plugin-proposal-object-rest-spread@^7.20.0":
-  version "7.20.7"
+  "version" "7.20.7"
   dependencies:
     "@babel/compat-data" "^7.20.5"
     "@babel/helper-compilation-targets" "^7.20.7"
@@ -355,7 +355,7 @@
     "@babel/helper-plugin-utils" "^7.8.0"
 
 "@babel/plugin-syntax-class-properties@^7.8.3":
-  version "7.12.13"
+  "version" "7.12.13"
   dependencies:
     "@babel/helper-plugin-utils" "^7.12.13"
 
@@ -370,7 +370,7 @@
     "@babel/helper-plugin-utils" "^7.24.7"
 
 "@babel/plugin-syntax-flow@^7.12.1", "@babel/plugin-syntax-flow@^7.18.0", "@babel/plugin-syntax-flow@^7.24.7":
-  version "7.24.7"
+  "version" "7.24.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.24.7"
 
@@ -399,7 +399,7 @@
     "@babel/helper-plugin-utils" "^7.8.0"
 
 "@babel/plugin-syntax-jsx@^7.24.7", "@babel/plugin-syntax-jsx@^7.7.2":
-  version "7.24.7"
+  "version" "7.24.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.24.7"
 
@@ -419,7 +419,7 @@
     "@babel/helper-plugin-utils" "^7.10.4"
 
 "@babel/plugin-syntax-object-rest-spread@^7.8.3":
-  version "7.8.3"
+  "version" "7.8.3"
   dependencies:
     "@babel/helper-plugin-utils" "^7.8.0"
 
@@ -475,9 +475,9 @@
     "@babel/helper-remap-async-to-generator" "^7.25.7"
 
 "@babel/plugin-transform-block-scoped-functions@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-block-scoped-functions/-/plugin-transform-block-scoped-functions-7.25.7.tgz"
-  integrity sha512-xHttvIM9fvqW+0a3tZlYcZYSBpSWzGBFIt/sYG3tcdSzBB8ZeVgz2gBP7Df+sM0N1850jrviYSSeUuc+135dmQ==
+  "integrity" "sha512-xHttvIM9fvqW+0a3tZlYcZYSBpSWzGBFIt/sYG3tcdSzBB8ZeVgz2gBP7Df+sM0N1850jrviYSSeUuc+135dmQ=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-block-scoped-functions/-/plugin-transform-block-scoped-functions-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
 
@@ -525,9 +525,9 @@
     "@babel/template" "^7.25.7"
 
 "@babel/plugin-transform-destructuring@^7.20.0", "@babel/plugin-transform-destructuring@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.25.7.tgz"
-  integrity sha512-xKcfLTlJYUczdaM1+epcdh1UGewJqr9zATgrNHcLBcV2QmfvPPEixo/sK/syql9cEmbr7ulu5HMFG5vbbt/sEA==
+  "integrity" "sha512-xKcfLTlJYUczdaM1+epcdh1UGewJqr9zATgrNHcLBcV2QmfvPPEixo/sK/syql9cEmbr7ulu5HMFG5vbbt/sEA=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
 
@@ -577,15 +577,15 @@
     "@babel/helper-plugin-utils" "^7.25.7"
 
 "@babel/plugin-transform-flow-strip-types@^7.20.0", "@babel/plugin-transform-flow-strip-types@^7.24.7":
-  version "7.24.7"
+  "version" "7.24.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.24.7"
     "@babel/plugin-syntax-flow" "^7.24.7"
 
 "@babel/plugin-transform-for-of@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-for-of/-/plugin-transform-for-of-7.25.7.tgz"
-  integrity sha512-n/TaiBGJxYFWvpJDfsxSj9lEEE44BFM1EPGz4KEiTipTgkoFVVcCmzAL3qA7fdQU96dpo4gGf5HBx/KnDvqiHw==
+  "integrity" "sha512-n/TaiBGJxYFWvpJDfsxSj9lEEE44BFM1EPGz4KEiTipTgkoFVVcCmzAL3qA7fdQU96dpo4gGf5HBx/KnDvqiHw=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-for-of/-/plugin-transform-for-of-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
     "@babel/helper-skip-transparent-expression-wrappers" "^7.25.7"
@@ -621,9 +621,9 @@
     "@babel/helper-plugin-utils" "^7.25.7"
 
 "@babel/plugin-transform-member-expression-literals@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-member-expression-literals/-/plugin-transform-member-expression-literals-7.25.7.tgz"
-  integrity sha512-Std3kXwpXfRV0QtQy5JJcRpkqP8/wG4XL7hSKZmGlxPlDqmpXtEPRmhF7ztnlTCtUN3eXRUJp+sBEZjaIBVYaw==
+  "integrity" "sha512-Std3kXwpXfRV0QtQy5JJcRpkqP8/wG4XL7hSKZmGlxPlDqmpXtEPRmhF7ztnlTCtUN3eXRUJp+sBEZjaIBVYaw=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-member-expression-literals/-/plugin-transform-member-expression-literals-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
 
@@ -701,9 +701,9 @@
     "@babel/plugin-transform-parameters" "^7.25.7"
 
 "@babel/plugin-transform-object-super@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-object-super/-/plugin-transform-object-super-7.25.7.tgz"
-  integrity sha512-pWT6UXCEW3u1t2tcAGtE15ornCBvopHj9Bps9D2DsH15APgNVOTwwczGckX+WkAvBmuoYKRCFa4DK+jM8vh5AA==
+  "integrity" "sha512-pWT6UXCEW3u1t2tcAGtE15ornCBvopHj9Bps9D2DsH15APgNVOTwwczGckX+WkAvBmuoYKRCFa4DK+jM8vh5AA=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-object-super/-/plugin-transform-object-super-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
     "@babel/helper-replace-supers" "^7.25.7"
@@ -748,9 +748,9 @@
     "@babel/helper-plugin-utils" "^7.25.7"
 
 "@babel/plugin-transform-property-literals@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-property-literals/-/plugin-transform-property-literals-7.25.7.tgz"
-  integrity sha512-lQEeetGKfFi0wHbt8ClQrUSUMfEeI3MMm74Z73T9/kuz990yYVtfofjf3NuA42Jy3auFOpbjDyCSiIkTs1VIYw==
+  "integrity" "sha512-lQEeetGKfFi0wHbt8ClQrUSUMfEeI3MMm74Z73T9/kuz990yYVtfofjf3NuA42Jy3auFOpbjDyCSiIkTs1VIYw=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-property-literals/-/plugin-transform-property-literals-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
 
@@ -826,9 +826,9 @@
     "@babel/helper-plugin-utils" "^7.25.7"
 
 "@babel/plugin-transform-template-literals@^7.25.7":
-  version "7.25.7"
-  resolved "https://registry.npmjs.org/@babel/plugin-transform-template-literals/-/plugin-transform-template-literals-7.25.7.tgz"
-  integrity sha512-SI274k0nUsFFmyQupiO7+wKATAmMFf8iFgq2O+vVFXZ0SV9lNfT1NGzBEhjquFmD8I9sqHLguH+gZVN3vww2AA==
+  "integrity" "sha512-SI274k0nUsFFmyQupiO7+wKATAmMFf8iFgq2O+vVFXZ0SV9lNfT1NGzBEhjquFmD8I9sqHLguH+gZVN3vww2AA=="
+  "resolved" "https://registry.npmjs.org/@babel/plugin-transform-template-literals/-/plugin-transform-template-literals-7.25.7.tgz"
+  "version" "7.25.7"
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.7"
 
@@ -2186,8 +2186,8 @@ babel-plugin-polyfill-regenerator@^0.6.1:
   dependencies:
     "@babel/helper-define-polyfill-provider" "^0.6.2"
 
-babel-plugin-transform-flow-enums@^0.0.2:
-  version "0.0.2"
+"babel-plugin-transform-flow-enums@^0.0.2":
+  "version" "0.0.2"
   dependencies:
     "@babel/plugin-syntax-flow" "^7.12.1"
 
@@ -2207,11 +2207,11 @@ babel-preset-current-node-syntax@^1.0.0:
     "@babel/plugin-syntax-optional-chaining" "^7.8.3"
     "@babel/plugin-syntax-top-level-await" "^7.8.3"
 
-babel-preset-jest@^29.6.3:
-  version "29.6.3"
+"babel-preset-jest@^29.6.3":
+  "version" "29.6.3"
   dependencies:
-    babel-plugin-jest-hoist "^29.6.3"
-    babel-preset-current-node-syntax "^1.0.0"
+    "babel-plugin-jest-hoist" "^29.6.3"
+    "babel-preset-current-node-syntax" "^1.0.0"
 
 balanced-match@^1.0.0:
   version "1.0.2"
@@ -3290,21 +3290,16 @@ has-tostringtag@^1.0.0, has-tostringtag@^1.0.2:
 hasown@^2.0.0, hasown@^2.0.1, hasown@^2.0.2:
   version "2.0.2"
   dependencies:
-    function-bind "^1.1.2"
+    "function-bind" "^1.1.2"
 
-hermes-estree@0.19.1:
-  version "0.19.1"
+"hermes-estree@0.19.1":
+  "version" "0.19.1"
 
-hermes-estree@0.20.1:
-  version "0.20.1"
+"hermes-estree@0.20.1":
+  "version" "0.20.1"
 
-hermes-parser@0.19.1:
-  version "0.19.1"
-  dependencies:
-    hermes-estree "0.19.1"
-
-hermes-parser@0.20.1:
-  version "0.20.1"
+"hermes-parser@0.19.1":
+  "version" "0.19.1"
   dependencies:
     hermes-estree "0.20.1"
 
@@ -4206,10 +4201,10 @@ metro-minify-terser@0.80.9:
   dependencies:
     terser "^5.15.0"
 
-metro-react-native-babel-preset@^0.77.0:
-  version "0.77.0"
-  resolved "https://registry.npmjs.org/metro-react-native-babel-preset/-/metro-react-native-babel-preset-0.77.0.tgz"
-  integrity sha512-HPPD+bTxADtoE4y/4t1txgTQ1LVR6imOBy7RMHUsqMVTbekoi8Ph5YI9vKX2VMPtVWeFt0w9YnCSLPa76GcXsA==
+"metro-react-native-babel-preset@^0.77.0":
+  "integrity" "sha512-HPPD+bTxADtoE4y/4t1txgTQ1LVR6imOBy7RMHUsqMVTbekoi8Ph5YI9vKX2VMPtVWeFt0w9YnCSLPa76GcXsA=="
+  "resolved" "https://registry.npmjs.org/metro-react-native-babel-preset/-/metro-react-native-babel-preset-0.77.0.tgz"
+  "version" "0.77.0"
   dependencies:
     "@babel/core" "^7.20.0"
     "@babel/plugin-proposal-async-generator-functions" "^7.0.0"
@@ -4251,8 +4246,8 @@ metro-react-native-babel-preset@^0.77.0:
     babel-plugin-transform-flow-enums "^0.0.2"
     react-refresh "^0.4.0"
 
-metro-resolver@0.80.9:
-  version "0.80.9"
+"metro-resolver@0.80.9":
+  "version" "0.80.9"
 
 metro-runtime@^0.80.3, metro-runtime@0.80.9:
   version "0.80.9"
@@ -4993,10 +4988,15 @@ react-native-tab-view@^3.5.2:
   dependencies:
     use-latest-callback "^0.1.5"
 
-react-native-vector-icons@*, react-native-vector-icons@^10.1.0:
-  version "10.1.0"
-  resolved "https://registry.npmjs.org/react-native-vector-icons/-/react-native-vector-icons-10.1.0.tgz"
-  integrity sha512-fdQjCHIdoXmRoTZ5gvN1FmT4sGLQ2wmQiNZHKJQUYnE2tkIwjGnxNch+6Nd4lHAACvMWO7LOzBNot2u/zlOmkw==
+"react-native-tts@^4.1.1":
+  "integrity" "sha512-VL0TgCwkUWggbbFGIXAPKC3rM1baluAYtgOdgnaTm7UYsWf/y8n5VgmVB0J2Wa8qt1dldZ1cSsdQY9iz3evcAg=="
+  "resolved" "https://registry.npmjs.org/react-native-tts/-/react-native-tts-4.1.1.tgz"
+  "version" "4.1.1"
+
+"react-native-vector-icons@*", "react-native-vector-icons@^10.1.0":
+  "integrity" "sha512-fdQjCHIdoXmRoTZ5gvN1FmT4sGLQ2wmQiNZHKJQUYnE2tkIwjGnxNch+6Nd4lHAACvMWO7LOzBNot2u/zlOmkw=="
+  "resolved" "https://registry.npmjs.org/react-native-vector-icons/-/react-native-vector-icons-10.1.0.tgz"
+  "version" "10.1.0"
   dependencies:
     prop-types "^15.7.2"
     yargs "^16.1.1"

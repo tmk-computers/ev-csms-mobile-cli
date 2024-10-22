@@ -1,4 +1,4 @@
-package com.rncli_chargeplus
+package com.rapaidchargex
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

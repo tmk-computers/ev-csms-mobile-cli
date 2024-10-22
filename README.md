@@ -46,18 +46,53 @@ If everything is set up _correctly_, you should see your new app running in your
 
 This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
 
-## Step 3: Modifying your App
+### Build APK
 
-Now that you have successfully run the app, let's modify it.
+## First Disable Metro Bundler
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+By default, React Native apps built in debug mode expect the Metro Bundler to be running. To avoid this requirement (because we want the APK to run independently), you need to make a small change:
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+Open the MainApplication.java file in your Android project, located at: 
+android/app/src/main/java/com/yourprojectname/MainApplication.java
 
-## Congratulations! :tada:
+Inside MainApplication.java, look for the following line:
 
-You've successfully run and modified your React Native App. :partying_face:
+```java
+public boolean getUseDeveloperSupport() {
+    return BuildConfig.DEBUG;
+}
+```
+
+Replace it with:
+
+```java
+public boolean getUseDeveloperSupport() {
+    return false;  // Disable developer support to avoid requiring Metro bundler
+}
+```
+
+## Step 1: Clean the project (optional but recommended): 
+```bash
+./gradlew clean
+```
+
+## Step 2: Bundle the latest JavaScript
+```bash
+npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+```
+
+## Step 3: build the APK
+```bash
+# debug APK
+./gradlew assembleDebug
+# OR for release:
+./gradlew assembleRelease
+```
+
+## Step 4: Install the APK on your device
+```bash
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ### Now what?
 
