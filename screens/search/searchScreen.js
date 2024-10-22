@@ -18,6 +18,7 @@ import { fetchNearbyChargingStationsUsingAggregator } from '../../api/realApi';
 import Geocoder from 'react-native-geocoding';
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
+import Loader, { height } from '../../utils/loader/loading';
 
 const recentSearchesList = [];
 
@@ -34,7 +35,7 @@ const SearchScreen = ({navigation}) => {
   const [recentSearches, setrecentSearches] = useState(recentSearchesList);
   const [nearByChargingStationsList, setNearByChargingStationsList] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
-
+  const [isNearbyLoading, setIsNearbyLoading] = useState(false)
   useEffect(() => {
     Geocoder.init(Key.apiKey);
   }, []);
@@ -57,6 +58,7 @@ const SearchScreen = ({navigation}) => {
 
   async function fetchChargingStationsNearByPlace({ address }) {
     try {
+      setIsNearbyLoading(true)
       Geocoder.from(address)
         .then(async json => {
           var location = json.results[0].geometry.location;
@@ -66,27 +68,35 @@ const SearchScreen = ({navigation}) => {
           };
           const { success, data } = await fetchNearbyChargingStationsUsingAggregator(userSearchLocation.latitude, userSearchLocation.longitude, 50);
           if (success && Array.isArray(data) && data.length > 0) {
+            setIsNearbyLoading(false)
             setNearByChargingStationsList(data);
             const location = await getCurrentPosition();
             setCurrentLocation(location);
           } else {
+            setIsNearbyLoading(false)
             setNearByChargingStationsList([]);
             console.log("No charging stations available nearby for this location.");
           }
           console.log("userSearchLocation", userSearchLocation);
         })
         .catch(error => {
+          setIsNearbyLoading(false)
           console.error('Error in geocoding: ', error);
           console.log("Failed to fetch nearby charging stations for this location.");
         });
     } catch (error) {
+      setIsNearbyLoading(false)
       console.log("Failed to fetch nearby charging stations for this location.");
     }
   }
   function nearByChargingStationInfo() {
 
-    if (nearByChargingStationsList.length === 0) {
-      return <Text style={styles.messageText}>No nearBy charging stations found...</Text>;
+    if (nearByChargingStationsList.length === 0 && !isNearbyLoading) {
+      return (
+        <View style={styles.messageHeader}>
+          <Text style={styles.messageText}> No nearby {'\n'}charging stations found...</Text>
+        </View>
+      );
     }
 
     const renderItem = ({ item }) => (
@@ -198,13 +208,18 @@ const SearchScreen = ({navigation}) => {
         >
           Nearby charging stations
         </Text>
-        <FlatList
+        {isNearbyLoading ? 
+        (<View style={styles.loaderContainer}>
+          <Loader size="large" />
+        </View>)
+        :
+        (<FlatList
           data={nearByChargingStationsList}
           keyExtractor={(item) => `${item.id}`}
           renderItem={renderItem}
           style={{ paddingTop: Sizes.fixPadding * 1.5 }}
           scrollEnabled={false}
-        />
+        />)}
       </View>
     );
   }
@@ -364,6 +379,12 @@ const styles = StyleSheet.create({
     marginTop: Sizes.fixPadding * 2.0,
     ...Fonts.grayColor18Regular,
   },
+  messageHeader:{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: height/2 , 
+  },
   getDirectionButton: {
     backgroundColor: Colors.primaryColor,
     paddingHorizontal: Sizes.fixPadding + 5.0,
@@ -401,5 +422,12 @@ const styles = StyleSheet.create({
     height: 10.0,
     borderRadius: 5.0,
     backgroundColor: Colors.primaryColor,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: height/2 , // Ensure it covers full height
+    width: '100%', // Ensure it covers full width
   },
 });

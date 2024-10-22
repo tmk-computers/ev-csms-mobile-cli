@@ -231,7 +231,7 @@ const ProfileScreen = ({ navigation }) => {
             option: "Login",
             icon: require("../../assets/images/icons/user.png"),
             onPress: () => {
-              navigation.push("Signin");
+              navigation.navigate("Signin");
             },
           })}
         </View>

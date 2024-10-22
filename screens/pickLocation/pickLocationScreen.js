@@ -148,7 +148,22 @@ const PickLocationScreen = ({ navigation, route }) => {
               setSearch(data.description);
               setTheMarkerAccordingSearch({ address: data.description });
             }}
-            styles={{ textInput: { height: 35 } }}
+            styles={{ 
+              textInput: { height: 35,
+              color: Colors.blackColor, // Ensure this color is visible against the background
+              backgroundColor: Colors.whiteColor, 
+             },
+             
+            }}
+
+            renderRow={(rowData) => (
+              <View style={{ backgroundColor: Colors.whiteColor }}>
+                <Text style={{ color: Colors.blackColor }}>
+                  {rowData.description}
+                </Text>
+              </View>
+            )}
+
             query={{
               key: Key.apiKey,
               language: "en",
@@ -160,6 +175,7 @@ const PickLocationScreen = ({ navigation, route }) => {
                 setSearch(value);
               },
               selectionColor: Colors.primaryColor,
+              placeholderTextColor: Colors.grayColor,
             }}
           />
           {search ? (
