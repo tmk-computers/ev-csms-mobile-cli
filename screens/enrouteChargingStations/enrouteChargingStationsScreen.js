@@ -344,7 +344,7 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
                     marginRight: Sizes.fixPadding - 5.0,
                   }}
                 >
-                  {item.distance}
+                  {item.distance} Km
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.8}

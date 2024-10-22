@@ -25,7 +25,7 @@ const PickLocationScreen = ({ navigation, route }) => {
     Geocoder.init(Key.apiKey);
   }, []);
 
-  const { currentLocation } = route.params;
+  const { currentLocation, addressFor } = route.params;
   const LATITUDE = currentLocation?.coords?.latitude;
   const LONGITUDE = currentLocation?.coords?.longitude;
   const LATITUDE_DELTA = 0.3;
@@ -92,7 +92,7 @@ const PickLocationScreen = ({ navigation, route }) => {
         onPress={() => {
           navigation.navigate({
             name: "Enroute",
-            params: { address: address, location: location, addressFor: route.params.addressFor },
+            params: { address: address, location: location, addressFor: addressFor },
             merge: true,
           });
         }}
@@ -115,6 +115,7 @@ const PickLocationScreen = ({ navigation, route }) => {
           longitude: location.lng,
         };
         setCurrentMarker(userSearchLocation);
+        setLocation({ latitude: location.lat, longitude: location.lng });
         setAddress(address);
       })
       .catch(error => console.warn(error));

@@ -40,10 +40,12 @@ const EnRouteScreen = ({ navigation, route }) => {
   const [destinationAddress, setDestinationAddress] = useState("");
   const [pickAlert, setpickAlert] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [currentLocationLoaded, setCurrentLocationLoaded] = useState(false);
 
   const fetchCurrentLocation = async () => {
     const location = await getCurrentPosition();
     setCurrentLocation(location);
+    setCurrentLocationLoaded(true);
   };
 
   return (
@@ -77,8 +79,6 @@ const EnRouteScreen = ({ navigation, route }) => {
         }}
         onPress={() => {
           if (pickupAddress && destinationAddress) {
-            console.log("Pickup address", pickupAddress);
-            console.log("Destination address", destinationAddress);
             navigation.push("EnrouteChargingStations", {pickupLocation, destinationLocation});
           } else {
             setpickAlert(true);
@@ -98,11 +98,14 @@ const EnRouteScreen = ({ navigation, route }) => {
   function destinationInfo() {
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={currentLocationLoaded ? 0.8 : 1}
         onPress={() => {
-          navigation.push("PickLocation", { addressFor: "destination", currentLocation });
+          if (currentLocationLoaded) {
+            navigation.push("PickLocation", { addressFor: "destination", currentLocation });
+          }
         }}
-        style={{ ...styles.pickPointWrapStyle }}
+        style={{ ...styles.pickPointWrapStyle, opacity: currentLocationLoaded ? 1 : 0.5 }}
+        disabled={!currentLocationLoaded}
       >
         <View style={styles.locationIconWrapStyle}>
           <MaterialIcons
@@ -128,11 +131,14 @@ const EnRouteScreen = ({ navigation, route }) => {
   function pickupInfo() {
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={currentLocationLoaded ? 0.8 : 1}
         onPress={() => {
-          navigation.push("PickLocation", { addressFor: "pickup", currentLocation });
+          if (currentLocationLoaded) {
+            navigation.push("PickLocation", { addressFor: "pickup", currentLocation });
+          }
         }}
-        style={{ ...styles.pickPointWrapStyle, marginTop: Sizes.fixPadding }}
+        style={{ ...styles.pickPointWrapStyle, marginTop: Sizes.fixPadding, opacity: currentLocationLoaded ? 1 : 0.5 }}
+        disabled={!currentLocationLoaded}
       >
         <View style={styles.locationIconWrapStyle}>
           <MaterialIcons

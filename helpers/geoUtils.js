@@ -38,14 +38,7 @@ const requestLocationPermission = async () => {
                 buttonPositive: 'OK',
             },
         );
-        console.log('granted', granted);
-        if (granted === 'granted') {
-            console.log('You can use Geolocation');
-            return true;
-        } else {
-            console.log('You cannot use Geolocation');
-            return false;
-        }
+        return granted === 'granted';
     } catch (err) {
         return false;
     }
