@@ -80,6 +80,32 @@ export const verifyOtp = async (mobileNumber, otp) => {
 };
 
 /**
+ * Function to handle social login API call.
+ * @param {string} email - The email of the user.
+ * @param {string} fullName - The full name of the user.
+ * @param {string} mobileNumber - The mobile number of the user.
+ * @param {string} authProvider - The auth provider used for social login (e.g. Google, Facebook, etc.).
+ * @returns {Promise<object>} - The response from the server.
+ */
+export const socialLogin = async (email, fullName, mobileNumber, authProvider) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/social-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, fullName, mobileNumber, authProvider }),
+    });
+
+    const data = await response.json();
+    return { success: response.ok, data };
+  } catch (error) {
+    console.error('Error for social login:', error);
+    return { success: false, error };
+  }
+};
+
+/**
  * Function to handle fetch user info API call.
  * @param {string} token - The access token obtained after successful login.
  * @returns {Promise<object>} - The response from the server, containing a boolean `success` and the data from the server.
