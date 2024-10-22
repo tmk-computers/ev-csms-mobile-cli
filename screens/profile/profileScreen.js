@@ -20,7 +20,7 @@ import MyStatusBar from '../../components/myStatusBar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import authUtil from '../auth/authUtil';
+import { authUtils } from '../../helpers/authUtils';
 
 
 const ProfileScreen = ({ navigation }) => {
@@ -102,7 +102,7 @@ const ProfileScreen = ({ navigation }) => {
                   <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={async () => {
-                      await authUtil.signoutFromGoogle()
+                      await authUtils.signoutFromGoogle()
                       setshowLogoutSheet(false);
                       navigation.push("Signin");
                     }}

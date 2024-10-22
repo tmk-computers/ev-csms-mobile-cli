@@ -44,8 +44,12 @@ const SigninScreen = ({ navigation }) => {
   };
 
   useFocusEffect(
-    useCallback(async () => {
-      await AsyncStorage.setItem('userInfo', '')
+    useCallback(() => {
+      async function clearUserInfo() {
+        await AsyncStorage.setItem('userInfo', '')
+      }
+
+      clearUserInfo();
       BackHandler.addEventListener("hardwareBackPress", backAction);
       navigation.addListener("gestureEnd", backAction);
       return () => {
