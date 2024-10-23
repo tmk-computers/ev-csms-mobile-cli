@@ -6,11 +6,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  PermissionsAndroid,
-  Platform,
-  Alert,
-  Linking,
-  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,6 +22,7 @@ import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../..
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 import Loader, { height } from "../../utils/loader/loading";
+import ChargingStationsMap from '../../components/chargingStationsMap';
 
 const localImageMap = {
   'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
@@ -106,6 +102,22 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const handleStationSelect = (stationId) => {
+    navigation.push("ChargingStationDetail", { "chargingStationId": stationId });
+  };
+
+  const handleGetDirection = (station) => {
+    navigation.push("Direction", {
+      fromLocation: currentLocation?.coords,
+      toLocation: { latitude: station.latitude, longitude: station.longitude },
+      station,
+    });
+  };
+
+  const handleBackPress = () => {
+    navigation.pop();
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       fetchFullName();
@@ -150,105 +162,6 @@ const HomeScreen = ({ navigation }) => {
       return <Text style={styles.messageText}>No enroute charging stations found...</Text>;
     }
 
-    const renderItem = ({ item }) => (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => {
-          navigation.push("ChargingStationDetail", { "chargingStationId": item.id });
-        }}
-        style={styles.enrouteChargingStationWrapStyle}
-      >
-        {isImageUrl(item.stationImage) ? (
-          <Image
-            source={{ uri: item.stationImage }} // If it's a URL, use it directly
-            style={styles.enrouteChargingStationImage}
-          />
-        ) : (
-          <Image
-            source={getImageSource(item.stationImage, localImageMap)}
-            style={styles.enrouteChargingStationImage}
-          />
-        )}
-        <View style={styles.enrouteStationOpenCloseWrapper}>
-          <Text style={{ ...Fonts.whiteColor18Regular }}>
-            {item.isOpen ? "Open" : "Closed"}
-          </Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <View style={{ margin: Sizes.fixPadding }}>
-            <Text numberOfLines={1} style={{ ...Fonts.blackColor18SemiBold }}>
-              {item.stationName}
-            </Text>
-            <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-              {item.stationAddress}
-            </Text>
-            <View
-              style={{
-                marginTop: Sizes.fixPadding,
-                ...commonStyles.rowAlignCenter,
-              }}
-            >
-              <View style={{ ...commonStyles.rowAlignCenter }}>
-                <Text style={{ ...Fonts.blackColor18Medium }}>
-                  {item.rating}
-                </Text>
-                <MaterialIcons
-                  name="star"
-                  color={Colors.yellowColor}
-                  size={20}
-                />
-              </View>
-              <View
-                style={{
-                  marginLeft: Sizes.fixPadding * 2.0,
-                  ...commonStyles.rowAlignCenter,
-                  flex: 1,
-                }}
-              >
-                <View style={styles.primaryColorDot} />
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    marginLeft: Sizes.fixPadding,
-                    ...Fonts.grayColor14Medium,
-                    flex: 1,
-                  }}
-                >
-                  {item.totalPoints} Charging Points
-                </Text>
-              </View>
-            </View>
-          </View>
-          <View
-            style={{
-              ...commonStyles.rowAlignCenter,
-              paddingLeft: Sizes.fixPadding,
-              marginTop: Sizes.fixPadding,
-            }}
-          >
-            <Text
-              numberOfLines={1}
-              style={{
-                ...Fonts.blackColor16Medium,
-                flex: 1,
-                marginRight: Sizes.fixPadding - 5.0,
-              }}
-            >
-              {`${item.distance} Km`}
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
-              }}
-              style={styles.getDirectionButton}
-            >
-              <Text style={{ ...Fonts.whiteColor16Medium }}>Get Direction</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
     return (
       isEnrouteLoading ? (
         <View style={styles.loaderContainer}>
@@ -264,12 +177,14 @@ const HomeScreen = ({ navigation }) => {
         >
           Enroute charging station
         </Text>
-        <FlatList
-          data={enrouteChargingStationList}
-          keyExtractor={(item) => `${item.id}`}
-          renderItem={renderItem}
-          style={{ paddingTop: Sizes.fixPadding * 1.5 }}
-          scrollEnabled={false}
+        <ChargingStationsMap
+          currentLocation={currentLocation}
+          chargingSpotsList={nearByChargingStationsList}
+          onBackPress={handleBackPress}
+          onStationSelect={handleStationSelect}
+          onGetDirection={handleGetDirection}
+          width={'100%'}
+          height={'50%'}
         />
       </View>)
     );
