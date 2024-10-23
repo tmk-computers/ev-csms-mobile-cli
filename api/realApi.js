@@ -283,9 +283,9 @@ export const fetchEnrouteChargingStations = async (sourcePlace, destinationPlace
   }
 };
 
-export const fetchEnrouteChargingStationsUsingAggregator = async (lat1, long1, lat2, long2, radius) => {
+export const fetchEnrouteChargingStationsUsingAggregator = async (lat1, lon1, lat2, lon2, radius) => {
   try {
-    const response = await fetch(`${API_URL}/api/aggregator/enroute?lat1=${lat1}&long1=${long1}&lat2=${lat2}&long2=${long2}&radius=${radius}&maxResults=10&offset=0`, {
+    const response = await fetch(`${API_URL}/api/aggregator/enroute?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}&radius=${radius}&maxResults=10&offset=0`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
