@@ -41,6 +41,7 @@ const DirectionScreen = ({ navigation, route }) => {
     };
 
     init();
+    () => Geolocation.clearWatch(watchId)
   }, []);
 
   const requestLocationPermission = async () => {
@@ -281,22 +282,8 @@ const DirectionScreen = ({ navigation, route }) => {
         }} >
           {chargingSpotInfo()}
           <View style={{ flexDirection: "row", }}>
-            <TouchableOpacity
-              style={styles.navigationButton}
-              activeOpacity={0.8}
-              onPress={startNavigation}
-            >
-              <Text style={styles.navigationButtonText}>Start Navigation</Text>
-            </TouchableOpacity>
-            {/* {!navigationStarted && startNavigationButton()} */}
-
-            <TouchableOpacity
-              style={styles.navigationButton}
-              activeOpacity={0.8}
-              onPress={() => setShowDirections(!showDirections)} // Toggle visibility
-            >
-              <Text style={styles.navigationButtonText}>View Directions</Text>
-            </TouchableOpacity>
+            {!navigationStarted && startNavigationButton()}
+            {viewDirectionsButton()}
           </View>
         </View>
         {showDirections && renderDirectionsList()}
@@ -323,7 +310,9 @@ const DirectionScreen = ({ navigation, route }) => {
         activeOpacity={0.8}
         onPress={() => setShowDirections(!showDirections)} // Toggle visibility
       >
-        <Text style={styles.navigationButtonText}>View Directions</Text>
+        <Text style={styles.navigationButtonText}>
+          {showDirections ? 'Hide Directions' : 'View Directions'}
+        </Text>
       </TouchableOpacity>
     );
   }
@@ -542,7 +531,7 @@ const styles = StyleSheet.create({
     // right: 20,
     padding: 10,
     marginTop: 4,
-    fontSize:10,
+    fontSize: 10,
     marginHorizontal: 6,
     flex: 1,
     backgroundColor: Colors.primaryColor,
@@ -552,7 +541,7 @@ const styles = StyleSheet.create({
     ...commonStyles.shadow,
   },
   navigationButtonText: {
-    ...Fonts.whiteColor14Medium,
+    ...Fonts.whiteColor18SemiBold,
   },
   directionsList: {
     position: 'absolute',
