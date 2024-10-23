@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Modal,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,6 +21,7 @@ import {
 } from '../../constants/styles';
 import MyStatusBar from '../../components/myStatusBar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import authUtil from "../auth/OAuth/utils/authUtil";
 
 const ProfileScreen = ({ navigation }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,7 +41,7 @@ const ProfileScreen = ({ navigation }) => {
 
         if (storedFullName) setFullName(storedFullName);
         if (storedMobileNumber) setMobileNumber(storedMobileNumber || storedEmail);
-        if (storedIsSocialLogin) setIsSocialLogin(storedIsSocialLogin === 'true');
+        if (storedIsSocialLogin === 'true') setIsSocialLogin(true);
       }
       setIsLoggedIn(!!accessToken);
     } catch (error) {
@@ -74,6 +76,8 @@ const ProfileScreen = ({ navigation }) => {
 
   function logoutSheet() {
     const onLogoutPress = async () => {
+      const isSocialLogin = await AsyncStorage.getItem('socialLogin');
+      isSocialLogin === 'true' && await authUtil.signoutFromGoogle()
       await AsyncStorage.removeItem('email');
       await AsyncStorage.removeItem('fullName');
       await AsyncStorage.removeItem('mobileNumber');
@@ -177,7 +181,7 @@ const ProfileScreen = ({ navigation }) => {
           {profileOption({
             option: "Edit Profile",
             icon: require("../../assets/images/icons/user.png"),
-            disabled : isSocialLogin ? true : false,
+            disabled : isSocialLogin ,
             tooltipMessage : isSocialLogin ? `Profile signed in with social login cannot be edited ` : '',
             onPress: () => {
               navigation.push("EditProfile");
@@ -284,16 +288,28 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
-  function profileOption({ option, icon, onPress }) {
+  function profileOption({ option, icon, onPress, disabled, tooltipMessage }) {
+    const handlePress = () => {
+      if (disabled) {
+          Alert.alert('Info', tooltipMessage); 
+      } else {
+          onPress();
+      }
+  };
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={onPress}
+        onPress={!disabled ? onPress : handlePress}
         style={{
           ...commonStyles.rowSpaceBetween,
-          marginBottom: Sizes.fixPadding * 2.0,
-        }}>
-        <View style={{ ...commonStyles.rowAlignCenter, flex: 1 }}>
+          marginBottom: option === 'Login' ? Sizes.fixPadding * 1.0 : Sizes.fixPadding * 2.0 ,
+          marginTop: option === 'Login' ? Sizes.fixPadding * 1.0 : null,
+          opacity: disabled ? 0.5 : 1,
+          
+        }}
+        // disabled={disabled}
+        >
+        <View style={{ justifyContent:'center', ...commonStyles.rowAlignCenter, flex: 1 }}>
           <View style={styles.optionIconWrapper}>
             <Image
               source={icon}
