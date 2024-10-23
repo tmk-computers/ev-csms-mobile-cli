@@ -30,7 +30,15 @@ const localImageMap = {
     "charging_station5.png": require("../assets/images/chargingStations/charging_station5.png"),
 };
 
-const ChargingStationsMap = ({ currentLocation, chargingSpotsList, onBackPress, onStationSelect, onGetDirection }) => {
+const ChargingStationsMap = ({
+    currentLocation,
+    chargingSpotsList,
+    onBackPress,
+    onStationSelect,
+    onGetDirection,
+    width = '100%',  // Default width to 100%
+    height = '100%'  // Default height to 100%
+}) => {
     const [markerList] = useState(chargingSpotsList);
     const [region] = useState({
         latitude: currentLocation?.coords?.latitude,
@@ -101,7 +109,7 @@ const ChargingStationsMap = ({ currentLocation, chargingSpotsList, onBackPress, 
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
+        <View style={{ width, height, backgroundColor: Colors.bodyBackColor }}>
             <View style={{ flex: 1 }}>
                 {renderMarkersInfo()}
                 {renderBackArrow()}

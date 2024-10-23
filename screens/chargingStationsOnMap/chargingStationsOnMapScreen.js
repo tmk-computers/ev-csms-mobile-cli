@@ -37,6 +37,8 @@ const ChargingStationsOnMapScreen = ({ navigation, route }) => {
         onBackPress={handleBackPress}
         onStationSelect={handleStationSelect}
         onGetDirection={handleGetDirection}
+        width={'100%'}  // Or any other specific value
+        height={'100%'}  // Customize as needed
       />
     </View>
   );
