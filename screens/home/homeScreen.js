@@ -6,11 +6,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  PermissionsAndroid,
-  Platform,
-  Alert,
-  Linking,
-  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,6 +22,7 @@ import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../..
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 import Loader, { height } from "../../utils/loader/loading";
+import ChargingStationsMap from '../../components/chargingStationsMap';
 
 const localImageMap = {
   'charging_station1.png': require('../../assets/images/chargingStations/charging_station1.png'),
@@ -104,6 +100,22 @@ const HomeScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Error fetching full name:", error);
     }
+  };
+
+  const handleStationSelect = (stationId) => {
+    navigation.push("ChargingStationDetail", { "chargingStationId": stationId });
+  };
+
+  const handleGetDirection = (station) => {
+    navigation.push("Direction", {
+      fromLocation: currentLocation?.coords,
+      toLocation: { latitude: station.latitude, longitude: station.longitude },
+      station,
+    });
+  };
+
+  const handleBackPress = () => {
+    navigation.pop();
   };
 
   useFocusEffect(
@@ -285,74 +297,6 @@ const HomeScreen = ({ navigation }) => {
       return <Text style={styles.messageText}>No nearby charging stations found...</Text>;
     }
 
-    const renderItem = ({ item }) => (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => {
-          navigation.push("ChargingStationDetail", { "chargingStationId": item.id });
-        }}
-        style={styles.nearByChargingStationWrapStyle}
-      >
-        <View>
-          {isImageUrl(item.stationImage) ? (
-            <Image
-              source={{ uri: item.stationImage }} // If it's a URL, use it directly
-              style={styles.nearByChargingStationImageStyle}
-            />
-          ) : (
-            <Image
-              source={getImageSource(item.stationImage, localImageMap)}
-              style={styles.nearByChargingStationImageStyle}
-            />
-          )}
-          <View style={styles.nearByOpenCloseWrapper}>
-            <Text style={{ ...Fonts.whiteColor18Regular }}>
-              {item.isOpen ? "Open" : "Closed"}
-            </Text>
-          </View>
-        </View>
-        <View style={{ width: screenWidth / 1.83 }}>
-          <View style={{ padding: Sizes.fixPadding }}>
-            <Text numberOfLines={1} style={{ ...Fonts.blackColor18SemiBold }}>
-              {item.stationName}
-            </Text>
-            <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-              {item.stationAddress}
-            </Text>
-            <View style={{ ...commonStyles.rowAlignCenter }}>
-              <Text style={{ ...Fonts.blackColor18Medium }}>{item.rating}</Text>
-              <MaterialIcons name="star" color={Colors.yellowColor} size={20} />
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              paddingLeft: Sizes.fixPadding,
-            }}
-          >
-            <Text
-              numberOfLines={2}
-              style={{
-                ...Fonts.grayColor12Medium,
-                flex: 1,
-                marginRight: Sizes.fixPadding - 5.0,
-              }}
-            >
-              {item.totalPoints} Charging Points
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
-              }}
-              style={styles.getDirectionButton}
-            >
-              <Text style={{ ...Fonts.whiteColor16Medium }}>Get Direction</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
     return (
      isNearbyLoading ? 
      <Loader size={"small"}/>
@@ -379,17 +323,14 @@ const HomeScreen = ({ navigation }) => {
             See all
           </Text>
         </View>
-        <FlatList
-          data={nearByChargingStationsList}
-          keyExtractor={(item) => `${item.id}`}
-          renderItem={renderItem}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingLeft: Sizes.fixPadding * 2.0,
-            paddingTop: Sizes.fixPadding * 1.5,
-            paddingBottom: Sizes.fixPadding * 2.0,
-          }}
+        <ChargingStationsMap
+          currentLocation={currentLocation}
+          chargingSpotsList={nearByChargingStationsList}
+          onBackPress={handleBackPress}
+          onStationSelect={handleStationSelect}
+          onGetDirection={handleGetDirection}
+          width={'100%'}
+          height={'70%'}
         />
       </View>
     );
@@ -521,7 +462,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    height: height/2 , // Ensure it covers full height
+    height: height / 2, // Ensure it covers full height
     width: '100%', // Ensure it covers full width
   },
 });
