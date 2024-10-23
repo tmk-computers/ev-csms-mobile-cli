@@ -37,7 +37,7 @@ const DirectionScreen = ({ navigation, route }) => {
   const [showDirections, setShowDirections] = useState(false);
   const [directions, setDirections] = useState([]);
   const [fromSearch, setFromSearch] = useState("Your location");
-  const [toSearch, setToSearch] = useState(station.stationAddress);
+  const [toSearch, setToSearch] = useState(station?.stationAddress || station?.address || "Destination");
   const [address, setAddress] = useState("Your location");
   const [location, setLocation] = useState(null);
   const LATITUDE = currentLocation?.coords?.latitude;
@@ -461,7 +461,7 @@ const DirectionScreen = ({ navigation, route }) => {
               marginTop: Sizes.fixPadding * 2.0,
             }}
           >
-            {station?.distance} km
+            {station?.distance || 12.4} km
           </Text>
         </View>
       </View>
@@ -564,7 +564,7 @@ const DirectionScreen = ({ navigation, route }) => {
           style={{ marginTop: Sizes.fixPadding - 3.0 }}
         />
         <GooglePlacesAutocomplete
-          placeholder={station?.stationAddress || "Destination"}
+          placeholder={station?.stationAddress || station?.address || "Destination"}
           onPress={(data) => {
             console.log("search", data);
             setToSearch(data.description);
@@ -601,7 +601,7 @@ const DirectionScreen = ({ navigation, route }) => {
             editable: false
           }}
         />
-        {toSearch.length > 0 ? (
+        {toSearch?.length > 0 ? (
           <MaterialIcons
             name="close"
             size={20}
