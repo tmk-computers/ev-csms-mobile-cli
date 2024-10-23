@@ -105,7 +105,7 @@ const DirectionScreen = ({ navigation, route }) => {
         }
       },
       (error) => Alert.alert("Error", error.message),
-      { enableHighAccuracy: true, distanceFilter: 10 }
+      { enableHighAccuracy: true, distanceFilter: 1, interval: 1000, fastestInterval: 1000 }
     );
     setWatchId(id); // Store the watch ID to clear it later if needed
   };
@@ -274,9 +274,31 @@ const DirectionScreen = ({ navigation, route }) => {
       <View style={{ flex: 1 }}>
         {mapView()}
         {backArrow()}
-        {chargingSpotInfo()}
-        {!navigationStarted && startNavigationButton()}
-        {viewDirectionsButton()}
+        <View style={{
+          position: 'absolute', bottom: 20.0,
+          left: 20.0,
+          right: 20.0,
+        }} >
+          {chargingSpotInfo()}
+          <View style={{ flexDirection: "row", }}>
+            <TouchableOpacity
+              style={styles.navigationButton}
+              activeOpacity={0.8}
+              onPress={startNavigation}
+            >
+              <Text style={styles.navigationButtonText}>Start Navigation</Text>
+            </TouchableOpacity>
+            {/* {!navigationStarted && startNavigationButton()} */}
+
+            <TouchableOpacity
+              style={styles.navigationButton}
+              activeOpacity={0.8}
+              onPress={() => setShowDirections(!showDirections)} // Toggle visibility
+            >
+              <Text style={styles.navigationButtonText}>View Directions</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         {showDirections && renderDirectionsList()}
       </View>
     </View>
@@ -432,7 +454,7 @@ const DirectionScreen = ({ navigation, route }) => {
         }}
       >
         <MapViewDirections
-          origin={fromLocation}
+          origin={currentLocation}
           destination={toLocation}
           apikey={Key.apiKey}
           lineCap="square"
@@ -488,10 +510,10 @@ const styles = StyleSheet.create({
     borderWidth: 0.1,
     borderTopWidth: 1.0,
     flexDirection: "row",
-    position: "absolute",
-    bottom: 20.0,
-    left: 20.0,
-    right: 20.0,
+    // position: "absolute",
+    // bottom: 20.0,
+    // left: 20.0,
+    // right: 20.0,
   },
   chargingStationImage: {
     width: screenWidth / 3.2,
@@ -514,11 +536,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryColor,
   },
   navigationButton: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    padding: 15,
+    // position: 'absolute',
+    // bottom: 20,
+    // left: 20,
+    // right: 20,
+    padding: 10,
+    marginTop: 4,
+    fontSize:10,
+    marginHorizontal: 6,
+    flex: 1,
     backgroundColor: Colors.primaryColor,
     alignItems: 'center',
     justifyContent: 'center',
@@ -526,7 +552,7 @@ const styles = StyleSheet.create({
     ...commonStyles.shadow,
   },
   navigationButtonText: {
-    ...Fonts.whiteColor18SemiBold,
+    ...Fonts.whiteColor14Medium,
   },
   directionsList: {
     position: 'absolute',
