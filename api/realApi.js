@@ -283,6 +283,22 @@ export const fetchEnrouteChargingStations = async (sourcePlace, destinationPlace
   }
 };
 
+export const fetchEnrouteChargingStationsUsingAggregator = async (lat1, lon1, lat2, lon2, radius) => {
+  try {
+    const response = await fetch(`${API_URL}/api/aggregator/enroute?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}&radius=${radius}&maxResults=10&offset=0`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    const data = await response.json();
+    return { success: response.ok, data };
+  } catch (error) {
+    console.error('Error fetching nearby charging stations:', JSON.stringify(error));
+    return { success: false, error };
+  }
+};
+
 export const removeFromFavorites = async (token, id) => {
   try {
     const response = await fetch(`${API_URL}/api/charging-stations/favorites/${id}`, {

@@ -18,7 +18,7 @@ import {
   screenWidth,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../../api/realApi';
+import { fetchNearbyChargingStationsUsingAggregator } from '../../api/realApi';
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 import Loader, { height } from "../../utils/loader/loading";
@@ -38,12 +38,9 @@ const HomeScreen = ({ navigation }) => {
 
   const [fullName, setFullName] = useState("Guest");  // Default name
   const [nearByChargingStationsList, setNearByChargingStationsList] = useState([]);
-  const [enrouteChargingStationList, setEnrouteChargingStationList] = useState([]);
   const [nearbyErrorMessage, setNearbyErrorMessage] = useState("");
-  const [enrouteErrorMessage, setEnrouteErrorMessage] = useState("");
   const [currentLocation, setCurrentLocation] = useState(null);
   const [isNearbyLoading, setIsNearbyLoading] = useState(false)
-  const [isEnrouteLoading, setIsEnrouteLoading] = useState(false)
 
   const loadNearbyChargingStations = async () => {
     try {
@@ -52,10 +49,10 @@ const HomeScreen = ({ navigation }) => {
       setCurrentLocation(location);
       console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
 
-      const { success, data } = await fetchNearbyChargingStations(
-        location?.coords?.latitude,
+      const { success, data } = await fetchNearbyChargingStationsUsingAggregator(
+        location?.coords?.latitude, 
         location?.coords?.longitude,
-        10
+        500
       );
 
       if (success && Array.isArray(data) && data.length > 0) {
@@ -69,25 +66,6 @@ const HomeScreen = ({ navigation }) => {
       setIsNearbyLoading(false)
       console.error(error);
       setNearbyErrorMessage("Unable to fetch user's current location.");
-    }
-  };
-
-  const loadEnrouteChargingStations = async () => {
-    try {
-      setIsEnrouteLoading(true)
-      let sourcePlace = "";
-      let destinationPlace = "";
-      const { success, data } = await fetchEnrouteChargingStations(sourcePlace, destinationPlace);
-      if (success && Array.isArray(data) && data.length > 0) {
-        setIsEnrouteLoading(false)
-        setEnrouteChargingStationList(data);
-      } else {
-        setIsEnrouteLoading(false)
-        setEnrouteErrorMessage("No enroute charging stations available.");
-      }
-    } catch (error) {
-      setIsEnrouteLoading(false)
-      setEnrouteErrorMessage("Failed to fetch enroute charging stations.");
     }
   };
 
@@ -122,44 +100,30 @@ const HomeScreen = ({ navigation }) => {
     React.useCallback(() => {
       fetchFullName();
       loadNearbyChargingStations();
-      loadEnrouteChargingStations();
     }, [])
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <View style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow:1}}>
           {welcomeInfo()}
           {searchBox()}
-          {nearByChargingStationInfo()}
-          {enrouteChargingStationInfo()}
+          {nearByChargingStationInfoOnMap()}
+          {nearByChargingStationInfoList()}
         </ScrollView>
-        {mapViewButton()}
       </View>
     </View>
   );
 
-  function mapViewButton() {
-    return (
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": enrouteChargingStationList })}
-        style={styles.mapViewButton}
-      >
-        <MaterialIcons name="map" color={Colors.whiteColor} size={30} />
-      </TouchableOpacity>
-    );
-  }
+  function nearByChargingStationInfoList() {
 
-  function enrouteChargingStationInfo() {
-
-    if (enrouteErrorMessage) {
-      return <Text style={styles.messageText}>{enrouteErrorMessage}</Text>;
+    if (nearbyErrorMessage) {
+      return <Text style={styles.messageText}>{nearbyErrorMessage}</Text>;
     }
 
-    if (enrouteChargingStationList.length === 0 && !isEnrouteLoading) {
-      return <Text style={styles.messageText}>No enroute charging stations found...</Text>;
+    if (nearByChargingStationsList.length === 0 && !isNearbyLoading) {
+      return <Text style={styles.messageText}>No nearby charging stations found...</Text>;
     }
 
     const renderItem = ({ item }) => (
@@ -262,7 +226,7 @@ const HomeScreen = ({ navigation }) => {
       </TouchableOpacity>
     );
     return (
-      isEnrouteLoading ? (
+      isNearbyLoading ? (
         <View style={styles.loaderContainer}>
           <Loader size="large" />
         </View>
@@ -272,12 +236,13 @@ const HomeScreen = ({ navigation }) => {
           style={{
             marginHorizontal: Sizes.fixPadding * 2.0,
             ...Fonts.blackColor20SemiBold,
+            marginTop: Sizes.fixPadding * 2.7
           }}
         >
-          Enroute charging station
+          Nearby charging station
         </Text>
         <FlatList
-          data={enrouteChargingStationList}
+          data={nearByChargingStationsList}
           keyExtractor={(item) => `${item.id}`}
           renderItem={renderItem}
           style={{ paddingTop: Sizes.fixPadding * 1.5 }}
@@ -287,7 +252,7 @@ const HomeScreen = ({ navigation }) => {
     );
   }
 
-  function nearByChargingStationInfo() {
+  function nearByChargingStationInfoOnMap() {
 
     if (nearbyErrorMessage) {
       return <Text style={styles.messageText}>{nearbyErrorMessage}</Text>;
@@ -299,39 +264,51 @@ const HomeScreen = ({ navigation }) => {
 
     return (
      isNearbyLoading ? 
-     <Loader size={"small"}/>
+    null
      :
      <View style={{ marginTop: Sizes.fixPadding * 2.0 }}>
         <View
           style={{
             ...commonStyles.rowSpaceBetween,
             marginHorizontal: Sizes.fixPadding * 2.0,
+            display:"flex", justifyContent:"flex-end"
           }}
         >
-          <Text
+          {/* <Text
             numberOfLines={1}
             style={{ ...Fonts.blackColor20SemiBold, flex: 1 }}
           >
             Nearby charging station
-          </Text>
-          <Text
+          </Text> */}
+          {/* <Text
             onPress={() => {
               navigation.push("AllChargingStations");
             }}
             style={{ ...Fonts.primaryColor16Medium }}
           >
             See all
-          </Text>
+          </Text> */}
+          <Text
+            onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": nearByChargingStationsList})}
+            
+            style={{ ...Fonts.primaryColor16Medium, color:Colors.strongGreen }}
+          >
+            Enlarge map
+          </Text> 
         </View>
+        <View style={styles.mapParent}>
         <ChargingStationsMap
           currentLocation={currentLocation}
           chargingSpotsList={nearByChargingStationsList}
           onBackPress={handleBackPress}
           onStationSelect={handleStationSelect}
           onGetDirection={handleGetDirection}
-          width={'100%'}
-          height={'70%'}
+          width={'90%'}
+          height={height/2}
+          isBackArrowVisible= {false}
+          showCard={false}
         />
+        </View>
       </View>
     );
   }
@@ -361,10 +338,10 @@ const HomeScreen = ({ navigation }) => {
   function welcomeInfo() {
     return (
       <View style={{ margin: Sizes.fixPadding * 2.0 }}>
-        <Text style={{ ...Fonts.blackColor26SemiBold }}>Welcome {fullName},</Text>
-        <Text style={{ ...Fonts.grayColor18Regular }}>
+        <Text style={{ ...Fonts.blackColor20SemiBold }}>Welcome {fullName},</Text>
+        {/* <Text style={{ ...Fonts.grayColor18Regular }}>
           Find charging station now
-        </Text>
+        </Text> */}
       </View>
     );
   }
@@ -425,6 +402,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginHorizontal: Sizes.fixPadding * 2.0,
     marginBottom: Sizes.fixPadding * 2.0,
+    overflow:'scroll'
   },
   enrouteChargingStationImage: {
     width: screenWidth / 3.2,
@@ -465,4 +443,9 @@ const styles = StyleSheet.create({
     height: height / 2, // Ensure it covers full height
     width: '100%', // Ensure it covers full width
   },
+  mapParent: {
+    display:'flex',
+    justifyContent:'center',
+    alignItems:"center"
+  }
 });
