@@ -69,11 +69,9 @@ const SigninScreen = ({ navigation }) => {
       await AsyncStorage.setItem('accessToken', token);
       await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('expiresIn', expiresIn.toString());
-
       await AsyncStorage.setItem('fullName', userInfo.name);
-      await AsyncStorage.setItem('mobileNumber', '');
+      await AsyncStorage.setItem('mobileNumber', userInfo.contact ? userInfo.contact : '' );
       await AsyncStorage.setItem('email', userInfo.email);
-
       await AsyncStorage.setItem('socialLogin', 'true');
       setisLoading(false);
       navigation.push("BottomTabBar");

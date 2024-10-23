@@ -9,8 +9,8 @@ export const mapSocialUserToProfile = (user) => {
 
     return {
         name: capitalizedName,
-        email: email,
-        contact: contact,
-        image: photo
+        email,
+        contact,
+        image: photo,
     };
 }
