@@ -19,6 +19,7 @@ import {
     Fonts,
 } from "../constants/styles";
 
+
 const cardWidth = screenWidth / 1.15;
 const SPACING_FOR_CARD_INSET = screenWidth * 0.1 - 30;
 
@@ -37,7 +38,8 @@ const ChargingStationsMap = ({
     onStationSelect,
     onGetDirection,
     width = '100%',  // Default width to 100%
-    height = '100%'  // Default height to 100%
+    height = '100%',  // Default height to 100%
+    isBackArrowVisible = true,
 }) => {
     const [markerList] = useState(chargingSpotsList);
     const [region] = useState({
@@ -46,13 +48,14 @@ const ChargingStationsMap = ({
         latitudeDelta: 0.2,
         longitudeDelta: 0.2,
     });
-
+  
     let mapAnimation = new Animated.Value(0);
     let mapIndex = 0;
 
     const _map = createRef();
     const _scrollView = useRef(null);
 
+      
     useEffect(() => {
         mapAnimation.addListener(({ value }) => {
             let index = Math.floor(value / cardWidth + 0.3);
@@ -112,26 +115,29 @@ const ChargingStationsMap = ({
         <View style={{ width, height, backgroundColor: Colors.bodyBackColor }}>
             <View style={{ flex: 1 }}>
                 {renderMarkersInfo()}
-                {renderBackArrow()}
+                {isBackArrowVisible && renderBackArrow()}
                 {renderChargingSpotsInfo()}
             </View>
         </View>
     );
 
+
+
     function renderBackArrow() {
         return (
-            <TouchableOpacity
+            <View style={{ ...styles.searchFieldWithBackArrowWrapStyle }}>
+              <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={onBackPress}
-                style={styles.backArrowWrapStyle}
-            >
+                style={styles.backArrowWrapper}>
                 <MaterialIcons
-                    name={"arrow-back"}
-                    size={24}
-                    color={Colors.blackColor}
+                  name={'arrow-back'}
+                  size={24}
+                  color={Colors.blackColor}
                 />
-            </TouchableOpacity>
-        );
+              </TouchableOpacity>
+            </View>
+          );
     }
 
     function renderMarkersInfo() {
@@ -313,6 +319,34 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+    searchFieldWithBackArrowWrapStyle: {
+        position: "absolute",
+        top: 0.0,
+        left: 0.0,
+        right: 0.0,
+        margin: Sizes.fixPadding * 2.0,
+        ...commonStyles.rowAlignCenter,
+        zIndex: 100,
+      },
+      backArrowWrapper: {
+        width: 40.0,
+        height: 40.0,
+        borderRadius: 20.0,
+        backgroundColor: Colors.whiteColor,
+        alignItems: "center",
+        justifyContent: "center",
+        ...commonStyles.shadow,
+      },
+      searchFieldWrapStyle: {
+        flexDirection: "row",
+        flex: 1,
+        backgroundColor: Colors.whiteColor,
+        borderRadius: Sizes.fixPadding,
+        paddingHorizontal: Sizes.fixPadding,
+        paddingTop: Sizes.fixPadding - 6.0,
+        marginLeft: Sizes.fixPadding,
+        ...commonStyles.shadow,
+      },
 });
 
 export default ChargingStationsMap;

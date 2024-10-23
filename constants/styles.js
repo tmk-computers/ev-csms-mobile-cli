@@ -1,7 +1,7 @@
 import { Dimensions } from "react-native";
 
 export const Colors = {
-  primaryColor: "#067C60",
+  primaryColor: "#738677",
   blackColor: "#000000",
   whiteColor: "#FFFFFF",
   grayColor: "#828282",
@@ -9,7 +9,8 @@ export const Colors = {
   bodyBackColor: "#F2F2F2",
   yellowColor: "#F2C94C",
   extraLightGrayColor: "#e0e0e0",
-  redColor:'#FF0606'
+  redColor:'#FF0606',
+  strongGreen:'#067C60'
 };
 
 export const FontFamily = {

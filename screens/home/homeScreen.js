@@ -53,8 +53,10 @@ const HomeScreen = ({ navigation }) => {
       console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
 
       const { success, data } = await fetchNearbyChargingStations(
-        location?.coords?.latitude,
-        location?.coords?.longitude,
+        // location?.coords?.latitude, 
+        // location?.coords?.longitude,
+        18.5752617,
+        73.9586664,
         10
       );
 
@@ -129,13 +131,13 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <View style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow:1}}>
           {welcomeInfo()}
           {searchBox()}
           {nearByChargingStationInfo()}
           {enrouteChargingStationInfo()}
         </ScrollView>
-        {mapViewButton()}
+        {/* {mapViewButton()} */}
       </View>
     </View>
   );
@@ -272,6 +274,7 @@ const HomeScreen = ({ navigation }) => {
           style={{
             marginHorizontal: Sizes.fixPadding * 2.0,
             ...Fonts.blackColor20SemiBold,
+            marginTop: Sizes.fixPadding * 2.7
           }}
         >
           Enroute charging station
@@ -306,32 +309,43 @@ const HomeScreen = ({ navigation }) => {
           style={{
             ...commonStyles.rowSpaceBetween,
             marginHorizontal: Sizes.fixPadding * 2.0,
+            display:"flex", justifyContent:"flex-end"
           }}
         >
-          <Text
+          {/* <Text
             numberOfLines={1}
             style={{ ...Fonts.blackColor20SemiBold, flex: 1 }}
           >
             Nearby charging station
-          </Text>
-          <Text
+          </Text> */}
+          {/* <Text
             onPress={() => {
               navigation.push("AllChargingStations");
             }}
             style={{ ...Fonts.primaryColor16Medium }}
           >
             See all
-          </Text>
+          </Text> */}
+          <Text
+            onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": enrouteChargingStationList})}
+            
+            style={{ ...Fonts.primaryColor16Medium, color:Colors.strongGreen }}
+          >
+            Enlarge map
+          </Text> 
         </View>
+        <View style={styles.mapParent}>
         <ChargingStationsMap
           currentLocation={currentLocation}
           chargingSpotsList={nearByChargingStationsList}
           onBackPress={handleBackPress}
           onStationSelect={handleStationSelect}
           onGetDirection={handleGetDirection}
-          width={'100%'}
-          height={'70%'}
+          width={'90%'}
+          height={height/2}
+          isBackArrowVisible= {false}
         />
+        </View>
       </View>
     );
   }
@@ -361,10 +375,10 @@ const HomeScreen = ({ navigation }) => {
   function welcomeInfo() {
     return (
       <View style={{ margin: Sizes.fixPadding * 2.0 }}>
-        <Text style={{ ...Fonts.blackColor26SemiBold }}>Welcome {fullName},</Text>
-        <Text style={{ ...Fonts.grayColor18Regular }}>
+        <Text style={{ ...Fonts.blackColor20SemiBold }}>Welcome {fullName},</Text>
+        {/* <Text style={{ ...Fonts.grayColor18Regular }}>
           Find charging station now
-        </Text>
+        </Text> */}
       </View>
     );
   }
@@ -425,6 +439,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginHorizontal: Sizes.fixPadding * 2.0,
     marginBottom: Sizes.fixPadding * 2.0,
+    overflow:'scroll'
   },
   enrouteChargingStationImage: {
     width: screenWidth / 3.2,
@@ -465,4 +480,9 @@ const styles = StyleSheet.create({
     height: height / 2, // Ensure it covers full height
     width: '100%', // Ensure it covers full width
   },
+  mapParent: {
+    display:'flex',
+    justifyContent:'center',
+    alignItems:"center"
+  }
 });
