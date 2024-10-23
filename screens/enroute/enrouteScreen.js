@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   ScrollView,
+  TextInput,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import {
@@ -41,6 +42,11 @@ const EnRouteScreen = ({ navigation, route }) => {
   const [pickAlert, setpickAlert] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [currentLocationLoaded, setCurrentLocationLoaded] = useState(false);
+  const [carName, setCarName] = useState("");
+  const [carModel, setCarModel] = useState("");
+  const [modelYear, setModelYear] = useState("");
+  const [trim, setTrim] = useState(""); // S/LS/SL Plus
+  const [vin, setVin] = useState("");
 
   const fetchCurrentLocation = async () => {
     const location = await getCurrentPosition();
@@ -57,6 +63,7 @@ const EnRouteScreen = ({ navigation, route }) => {
           {enrouteDescription()}
           {pickupInfo()}
           {destinationInfo()}
+          {carDetailsInfo()}
           {seeRouteButton()}
         </ScrollView>
         {pickAddressMessage()}
@@ -94,6 +101,65 @@ const EnRouteScreen = ({ navigation, route }) => {
       </TouchableOpacity>
     );
   }
+
+  function carDetailsInfo() {
+    return (
+      <View style={styles.carDetailsContainer}>
+        <Text style={Fonts.blackColor18Medium}>Enter Car Details</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Car Name"
+          value={carName}
+          onChangeText={setCarName}
+          placeholderTextColor={"gray"}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Car Model"
+          value={carModel}
+          onChangeText={setCarModel}
+          placeholderTextColor={"gray"}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Model Year"
+          value={modelYear}
+          keyboardType="numeric"
+          onChangeText={setModelYear}
+          placeholderTextColor={"gray"}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Trim (S/LS/SL Plus)"
+          value={trim}
+          onChangeText={setTrim}
+          placeholderTextColor={"gray"}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="VIN"
+          value={vin}
+          onChangeText={setVin}
+          placeholderTextColor={"gray"}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Battery Percentage"
+          value={vin}
+          onChangeText={setVin}
+          placeholderTextColor={"gray"}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Avg. Milage"
+          value={vin}
+          onChangeText={setVin}
+          placeholderTextColor={"gray"}
+        />
+      </View>
+    );
+  }
+
 
   function destinationInfo() {
     return (
@@ -246,5 +312,18 @@ const styles = StyleSheet.create({
     padding: Sizes.fixPadding,
     marginHorizontal: Sizes.fixPadding * 2.0,
     marginBottom: Sizes.fixPadding * 2.0,
+  },
+  carDetailsContainer: {
+    marginHorizontal: Sizes.fixPadding * 2.0,
+    marginVertical: Sizes.fixPadding,
+  },
+  input: {
+    height: 40,
+    borderColor: Colors.extraLightGrayColor,
+    borderWidth: 1,
+    borderRadius: Sizes.fixPadding,
+    paddingHorizontal: Sizes.fixPadding,
+    marginBottom: Sizes.fixPadding,
+    color: 'black'
   },
 });

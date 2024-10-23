@@ -40,6 +40,7 @@ const ChargingStationsMap = ({
     width = '100%',  // Default width to 100%
     height = '100%',  // Default height to 100%
     isBackArrowVisible = true,
+    showCard= true
 }) => {
     const [markerList] = useState(chargingSpotsList);
     const [region] = useState({
@@ -190,7 +191,7 @@ const ChargingStationsMap = ({
                         { useNativeDriver: true }
                     )}
                 >
-                    {markerList.map((item, index) => (
+                    {showCard && markerList.map((item, index) => (
                         <TouchableOpacity
                             key={index}
                             activeOpacity={0.8}

@@ -264,7 +264,7 @@ const HomeScreen = ({ navigation }) => {
       </TouchableOpacity>
     );
     return (
-      isEnrouteLoading ? (
+      isNearbyLoading ? (
         <View style={styles.loaderContainer}>
           <Loader size="large" />
         </View>
@@ -277,10 +277,10 @@ const HomeScreen = ({ navigation }) => {
             marginTop: Sizes.fixPadding * 2.7
           }}
         >
-          Enroute charging station
+          Nearby charging station
         </Text>
         <FlatList
-          data={enrouteChargingStationList}
+          data={nearByChargingStationsList}
           keyExtractor={(item) => `${item.id}`}
           renderItem={renderItem}
           style={{ paddingTop: Sizes.fixPadding * 1.5 }}
@@ -302,7 +302,7 @@ const HomeScreen = ({ navigation }) => {
 
     return (
      isNearbyLoading ? 
-     <Loader size={"small"}/>
+    null
      :
      <View style={{ marginTop: Sizes.fixPadding * 2.0 }}>
         <View
@@ -344,6 +344,7 @@ const HomeScreen = ({ navigation }) => {
           width={'90%'}
           height={height/2}
           isBackArrowVisible= {false}
+          showCard={false}
         />
         </View>
       </View>
