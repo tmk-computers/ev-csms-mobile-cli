@@ -18,6 +18,7 @@ import MyStatusBar from "../../components/myStatusBar";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import Geocoder from "react-native-geocoding";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import BatteryModal from "../../components/batterymodal";
 
 
 const DirectionScreen = ({ navigation, route }) => {
@@ -45,6 +46,8 @@ const DirectionScreen = ({ navigation, route }) => {
       latitude: LATITUDE,
       longitude: LONGITUDE,
     });
+  const [isBatteryModalVisible, setBatteryModalVisible] = useState(false);
+  const [batteryPercentage, setBatteryPercentage] = useState(null);
   const ASPECT_RATIO = screenWidth / screenHeight
   const LATITUDE_DELTA = 0.3;
   const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
@@ -276,6 +279,7 @@ const DirectionScreen = ({ navigation, route }) => {
 
   const startNavigation = () => {
     setNavigationStarted(true);
+    
     // Fit both markers (start and end points) on the screen
     mapRef.current.fitToCoordinates([fromLocation, toLocation], {
       edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -297,6 +301,7 @@ const DirectionScreen = ({ navigation, route }) => {
     }, { duration: 1000 });
   };
 
+  
   const updateMapCamera = (currentPosition) => {
     const nextStep = routeCoordinates[stepIndex] || toLocation;
     const heading = calculateHeading(currentPosition, nextStep);
@@ -312,6 +317,11 @@ const DirectionScreen = ({ navigation, route }) => {
     }, { duration: 1000 });
   };
 
+  const handleBatteryPercentageSubmit = (percentage) => {
+  setBatteryPercentage(percentage)
+  startNavigation()
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
@@ -323,6 +333,7 @@ const DirectionScreen = ({ navigation, route }) => {
           left: 20.0,
           right: 20.0,
         }} >
+          {batteryPercentage && batteryIcon()}
           {chargingSpotInfo()}
           <View style={{ flexDirection: "row", }}>
             {!navigationStarted && startNavigationButton()}
@@ -330,16 +341,27 @@ const DirectionScreen = ({ navigation, route }) => {
           </View>
         </View>
         {showDirections && renderDirectionsList()}
+        {batteryModal()}
       </View>
     </View>
   );
 
+  function batteryIcon(){
+    return(
+      <View style={{...styles.batteryModelParent}}>
+        <MaterialIcons name="battery-charging-full" size={24} color={Colors.primaryColor} />
+        <Text style={{color:'green'}}>{batteryPercentage}%</Text>
+      </View>
+    )
+  }
+
   function startNavigationButton() {
+
     return (
       <TouchableOpacity
         style={styles.navigationButton}
         activeOpacity={0.8}
-        onPress={startNavigation}
+        onPress={() => setBatteryModalVisible(true)}
       >
         <Text style={styles.navigationButtonText}>Start Navigation</Text>
       </TouchableOpacity>
@@ -358,6 +380,18 @@ const DirectionScreen = ({ navigation, route }) => {
         </Text>
       </TouchableOpacity>
     );
+  }
+
+
+
+  function batteryModal (){
+    return (
+      <BatteryModal
+        visible={isBatteryModalVisible}
+        onClose={() => setBatteryModalVisible(false)}
+        onSubmit={handleBatteryPercentageSubmit}
+      />
+    )
   }
 
   function renderDirectionsList() {
@@ -771,5 +805,13 @@ const styles = StyleSheet.create({
     flexDirection:'column',
     gap:10,
     width:'85%'
+  },
+  batteryModelParent:{
+    display:"flex",
+    justifyContent:"flex-end",
+    width:"100%",
+    flexDirection:"row",
+    alignItems:"center",
+    paddingBottom:10
   }
 });
