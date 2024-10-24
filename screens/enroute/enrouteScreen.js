@@ -263,7 +263,7 @@ const EnRouteScreen = ({ navigation, route }) => {
               textAlign: "center",
             }}
           >
-            Enroute charging station
+            Trip planner
           </Text>
         </LinearGradient>
       </ImageBackground>
