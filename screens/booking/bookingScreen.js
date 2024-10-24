@@ -13,6 +13,7 @@ import MyStatusBar from "../../components/myStatusBar";
 import { Fonts, Sizes, Colors, commonStyles } from "../../constants/styles";
 import { TabView, TabBar } from "react-native-tab-view";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ongoingBookingsList = [
   {
@@ -72,23 +73,28 @@ const BookingScreen = ({ navigation, route }) => {
   const [ongoingBookings, setongoingBookings] = useState(ongoingBookingsList);
   const [selectedOngoingBookingId, setselectedOngoingBookingId] = useState();
   const [showCancelBookingDialog, setshowCancelBookingDialog] = useState(false);
-
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(null)
   useEffect(() => {
     if (route.params?.item) {
       changeOngoingBooking({ id: route.params.item.id });
     }
+    const userLoggedin = async() => {
+      const storedToken = await AsyncStorage.getItem("accessToken")
+      setIsUserLoggedIn(!!storedToken)
+    }
+    userLoggedin()
   }, [route.params?.item]);
-
+  console.log(isUserLoggedIn)
   const OngoingBookings = ({ navigation, data }) => {
     return (
       <View style={{ flex: 1 }}>
-        {data.length == 0 ? noBookingInfo() : bookingsInfo()}
+        {data.length == 0 || !isUserLoggedIn? noBookingInfo() : bookingsInfo()}
         {cancelBookingDialog()}
       </View>
     );
 
     function noBookingInfo() {
-      return (
+      return (  
         <View style={styles.noDataWrapper}>
           <Image
             source={require("../../assets/images/icons/no_booking.png")}
@@ -102,7 +108,8 @@ const BookingScreen = ({ navigation, route }) => {
           >
             You have no booking yet..!
           </Text>
-        </View>
+        </View> 
+        
       );
     }
 
@@ -338,7 +345,7 @@ const BookingScreen = ({ navigation, route }) => {
       }
     };
 
-    return (
+    return ( isUserLoggedIn ?
       <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
@@ -367,7 +374,22 @@ const BookingScreen = ({ navigation, route }) => {
             />
           );
         }}
+      /> 
+      : 
+      <View style={styles.noDataWrapper}>
+      <Image
+        source={require("../../assets/images/icons/user.png")}
+        style={{ width: 100.0, height: 100.0, resizeMode: "contain" }}
       />
+      <Text
+        style={{
+          ...Fonts.grayColor18Medium,
+          marginTop: Sizes.fixPadding - 5.0,
+        }}
+      >
+        Please Log in to book slot
+      </Text>
+    </View>
     );
   }
 

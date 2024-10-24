@@ -100,7 +100,7 @@ const EnRouteScreen = ({ navigation, route }) => {
         }}
       >
         <Text style={{ ...Fonts.whiteColor18Medium }}>
-          See enroute charging stations
+          Plan Trip
         </Text>
       </TouchableOpacity>
     );
@@ -110,49 +110,49 @@ const EnRouteScreen = ({ navigation, route }) => {
     return (
       <View style={styles.carDetailsContainer}>
         <Text style={Fonts.blackColor18Medium}>Enter Car Details</Text>
-        {/* <TextInput
+        <TextInput
           style={styles.input}
           placeholder="Frequency of hault during the travel"
-          value={carDetails.frequency}
-          onChangeText={setCarDetails({...carDetails, frequency: })}
+          // value={carDetails.frequency}
+          // onChangeText={setCarDetails({...carDetails, frequency: })}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
           placeholder="Animities filtering during travel"
-          value={aminities}
-          onChangeText={setAminities}
+          // value={aminities}
+          // onChangeText={setAminities}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
           placeholder="Duration of hault during travel"
-          value={haultDuration}
+          // value={haultDuration}
           keyboardType="numeric"
-          onChangeText={setModelYear}
+          // onChangeText={setModelYear}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
           placeholder="Battery charge status at start of the trip"
-          value={batteryStatus}
-          onChangeText={setBatteryStatus}
+          // value={batteryStatus}
+          // onChangeText={setBatteryStatus}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
           placeholder="Milage per KW"
-          value={milage}
-          onChangeText={setMilage}
+          // value={milage}
+          // onChangeText={setMilage}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
           placeholder="Car battery capacity"
-          value={carBatteryCapacity}
-          onChangeText={setCarBatteryCapacity}
+          // value={carBatteryCapacity}
+          // onChangeText={setCarBatteryCapacity}
           placeholderTextColor={"gray"}
-        /> */}
+        />
         {/* <TextInput
           style={styles.input}
           placeholder="Avg. Milage"

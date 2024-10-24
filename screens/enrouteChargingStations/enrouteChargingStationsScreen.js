@@ -62,7 +62,10 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
 
   let mapAnimation = new Animated.Value(0);
   let mapIndex = 0;
-
+  const totalTime = "HH:MM"
+  const source = "Source"
+  const chargingStations = ["Charging station -1", "Charging station -2"]
+  const destination = "Destination"
   const _map = createRef();
 
   useEffect(() => {
@@ -142,14 +145,15 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
   };
 
   const _scrollView = useRef(null);
-  console.log(showCards)
+  
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
       <View style={{ flex: 1 }}>
         {markersInfo()}
+        {floatingButton()}
         {backArrow()}
-        {showCards !== false ? chargingSpotsInfo() : showCarDetails()}
+        {chargingSpotsInfo()}
       </View>
     </View>
   );
@@ -171,105 +175,20 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
     );
   }
 
-  function showCarDetails(){
-    <TouchableOpacity
-    activeOpacity={0.8}
-    onPress={() => {
-      navigation.push("ChargingStationDetail", { "chargingStationId": item.id });
-    }}
-    style={styles.enrouteChargingStationWrapStyle}
-  >
-    {isImageUrl(item.stationImage) ? (
-      <Image
-        source={{ uri: item.stationImage }} // If it's a URL, use it directly
-        style={styles.enrouteChargingStationImage}
-      />
-    ) : (
-      <Image
-        source={getImageSource(item.stationImage, localImageMap)}
-        style={styles.enrouteChargingStationImage}
-      />
-    )}
-    <View style={styles.enrouteStationOpenCloseWrapper}>
-      <Text style={{ ...Fonts.whiteColor18Regular }}>
-        {item.isOpen ? "Open" : "Closed"}
-      </Text>
-    </View>
-    <View style={{ flex: 1 }}>
-      <View style={{ margin: Sizes.fixPadding }}>
-        <Text numberOfLines={1} style={{ ...Fonts.blackColor18SemiBold }}>
-          {item.stationName}
-        </Text>
-        <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-          {item.stationAddress}
-        </Text>
-        <View
-          style={{
-            marginTop: Sizes.fixPadding,
-            ...commonStyles.rowAlignCenter,
-          }}
-        >
-          <View style={{ ...commonStyles.rowAlignCenter }}>
-            <Text style={{ ...Fonts.blackColor18Medium }}>
-              {item.rating}
-            </Text>
-            <MaterialIcons
-              name="star"
-              color={Colors.yellowColor}
-              size={20}
-            />
-          </View>
-          <View
-            style={{
-              marginLeft: Sizes.fixPadding * 2.0,
-              ...commonStyles.rowAlignCenter,
-              flex: 1,
-            }}
-          >
-            <View style={styles.primaryColorDot} />
-            <Text
-              numberOfLines={1}
-              style={{
-                marginLeft: Sizes.fixPadding,
-                ...Fonts.grayColor14Medium,
-                flex: 1,
-              }}
-            >
-              {item.totalPoints} Charging Points
-            </Text>
-          </View>
-        </View>
-      </View>
-      <View
-        style={{
-          ...commonStyles.rowAlignCenter,
-          paddingLeft: Sizes.fixPadding,
-          marginTop: Sizes.fixPadding,
+  function floatingButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.navigate("DetailsScreen", { totalTime, source, chargingStations, destination  });
         }}
+        style={styles.floatingButtonStyle}
       >
-        <Text
-          numberOfLines={1}
-          style={{
-            ...Fonts.blackColor16Medium,
-            flex: 1,
-            marginRight: Sizes.fixPadding - 5.0,
-          }}
-        >
-          {`${item.distance} Km`}
-        </Text>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => {
-            navigation.push("Direction", { fromLocation: { latitude: currentLocation?.coords?.latitude, longitude: currentLocation?.coords?.longitude }, toLocation: { latitude: item.latitude, longitude: item.longitude }, station: item });
-          }}
-          style={styles.getDirectionButton}
-        >
-          <Text style={{ ...Fonts.whiteColor16Medium }}>Get Direction</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </TouchableOpacity>
+        <Text style={{ ...Fonts.whiteColorBold }}>View Details</Text>
+      </TouchableOpacity>
+    );
   }
+ 
 
   function markersInfo() {
     return (
@@ -530,4 +449,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  floatingButtonStyle: {
+    position: 'absolute',
+    bottom: 200,
+    right: 30,
+    backgroundColor: Colors.primaryColor,
+    padding: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
 });

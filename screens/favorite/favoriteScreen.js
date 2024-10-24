@@ -76,11 +76,31 @@ const FavoriteScreen = ({ navigation }) => {
       <MyStatusBar />
       <View style={{ flex: 1 }}>
         {header()}
-        {listData.length === 0 ? noItemsInfo() : favoriteItems()}
+        {token  ? (listData.length === 0 ? noItemsInfo() : favoriteItems()) : loggedoutInfo()}
       </View>
       {snackBar()}
     </View>
   );
+
+  function loggedoutInfo(){
+    return(
+      <View style={styles.noDataWrapper}>
+      <Image
+        source={require("../../assets/images/icons/user.png")}
+        style={{ width: 100.0, height: 100.0, resizeMode: "contain" }}
+      />
+      <Text
+        style={{
+          ...Fonts.grayColor18Medium,
+          marginTop: Sizes.fixPadding - 5.0,
+        }}
+      >
+        Please Login to Add your favorites
+      </Text>
+    </View>
+    )
+  }
+  
 
   function noItemsInfo() {
     return (
@@ -346,5 +366,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  noDataWrapper: {
+    flex: 1,
+    margin: Sizes.fixPadding * 2.0,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

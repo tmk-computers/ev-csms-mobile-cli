@@ -53,7 +53,7 @@ const SplashScreen = ({ navigation }) => {
           colors={["rgba(217, 217, 217, 0.00)", "rgba(6, 124, 96, 0.77)"]}
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ ...Fonts.whiteColor38SemiBold }}>ChargePlus</Text>
+          <Text style={{ ...Fonts.whiteColor38SemiBold }}>Rapid Chargex</Text>
         </LinearGradient>
       </ImageBackground>
     </View>
