@@ -18,7 +18,7 @@ import {
   screenWidth,
 } from "../../constants/styles";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { fetchNearbyChargingStations, fetchEnrouteChargingStations } from '../../api/realApi';
+import { fetchNearbyChargingStationsUsingAggregator } from '../../api/realApi';
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 import Loader, { height } from "../../utils/loader/loading";
@@ -38,12 +38,9 @@ const HomeScreen = ({ navigation }) => {
 
   const [fullName, setFullName] = useState("Guest");  // Default name
   const [nearByChargingStationsList, setNearByChargingStationsList] = useState([]);
-  const [enrouteChargingStationList, setEnrouteChargingStationList] = useState([]);
   const [nearbyErrorMessage, setNearbyErrorMessage] = useState("");
-  const [enrouteErrorMessage, setEnrouteErrorMessage] = useState("");
   const [currentLocation, setCurrentLocation] = useState(null);
   const [isNearbyLoading, setIsNearbyLoading] = useState(false)
-  const [isEnrouteLoading, setIsEnrouteLoading] = useState(false)
 
   const loadNearbyChargingStations = async () => {
     try {
@@ -52,12 +49,10 @@ const HomeScreen = ({ navigation }) => {
       setCurrentLocation(location);
       console.log("User's current location:", location?.coords?.latitude, location?.coords?.longitude);
 
-      const { success, data } = await fetchNearbyChargingStations(
-        // location?.coords?.latitude, 
-        // location?.coords?.longitude,
-        18.5752617,
-        73.9586664,
-        10
+      const { success, data } = await fetchNearbyChargingStationsUsingAggregator(
+        location?.coords?.latitude, 
+        location?.coords?.longitude,
+        500
       );
 
       if (success && Array.isArray(data) && data.length > 0) {
@@ -71,25 +66,6 @@ const HomeScreen = ({ navigation }) => {
       setIsNearbyLoading(false)
       console.error(error);
       setNearbyErrorMessage("Unable to fetch user's current location.");
-    }
-  };
-
-  const loadEnrouteChargingStations = async () => {
-    try {
-      setIsEnrouteLoading(true)
-      let sourcePlace = "";
-      let destinationPlace = "";
-      const { success, data } = await fetchEnrouteChargingStations(sourcePlace, destinationPlace);
-      if (success && Array.isArray(data) && data.length > 0) {
-        setIsEnrouteLoading(false)
-        setEnrouteChargingStationList(data);
-      } else {
-        setIsEnrouteLoading(false)
-        setEnrouteErrorMessage("No enroute charging stations available.");
-      }
-    } catch (error) {
-      setIsEnrouteLoading(false)
-      setEnrouteErrorMessage("Failed to fetch enroute charging stations.");
     }
   };
 
@@ -124,7 +100,6 @@ const HomeScreen = ({ navigation }) => {
     React.useCallback(() => {
       fetchFullName();
       loadNearbyChargingStations();
-      loadEnrouteChargingStations();
     }, [])
   );
 
@@ -134,34 +109,21 @@ const HomeScreen = ({ navigation }) => {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{flexGrow:1}}>
           {welcomeInfo()}
           {searchBox()}
-          {nearByChargingStationInfo()}
-          {enrouteChargingStationInfo()}
+          {nearByChargingStationInfoOnMap()}
+          {nearByChargingStationInfoList()}
         </ScrollView>
-        {/* {mapViewButton()} */}
       </View>
     </View>
   );
 
-  function mapViewButton() {
-    return (
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": enrouteChargingStationList })}
-        style={styles.mapViewButton}
-      >
-        <MaterialIcons name="map" color={Colors.whiteColor} size={30} />
-      </TouchableOpacity>
-    );
-  }
+  function nearByChargingStationInfoList() {
 
-  function enrouteChargingStationInfo() {
-
-    if (enrouteErrorMessage) {
-      return <Text style={styles.messageText}>{enrouteErrorMessage}</Text>;
+    if (nearbyErrorMessage) {
+      return <Text style={styles.messageText}>{nearbyErrorMessage}</Text>;
     }
 
-    if (enrouteChargingStationList.length === 0 && !isEnrouteLoading) {
-      return <Text style={styles.messageText}>No enroute charging stations found...</Text>;
+    if (nearByChargingStationsList.length === 0 && !isNearbyLoading) {
+      return <Text style={styles.messageText}>No nearby charging stations found...</Text>;
     }
 
     const renderItem = ({ item }) => (
@@ -290,7 +252,7 @@ const HomeScreen = ({ navigation }) => {
     );
   }
 
-  function nearByChargingStationInfo() {
+  function nearByChargingStationInfoOnMap() {
 
     if (nearbyErrorMessage) {
       return <Text style={styles.messageText}>{nearbyErrorMessage}</Text>;
@@ -327,7 +289,7 @@ const HomeScreen = ({ navigation }) => {
             See all
           </Text> */}
           <Text
-            onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": enrouteChargingStationList})}
+            onPress={() => navigation.push("ChargingStationsOnMap", { "currentLocation": currentLocation, "chargingSpotsList": nearByChargingStationsList})}
             
             style={{ ...Fonts.primaryColor16Medium, color:Colors.strongGreen }}
           >

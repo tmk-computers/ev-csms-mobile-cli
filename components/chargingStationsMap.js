@@ -43,11 +43,28 @@ const ChargingStationsMap = ({
     showCard= true
 }) => {
     const [markerList] = useState(chargingSpotsList);
+    
+    const latitudes = chargingSpotsList.map(marker => marker.latitude);
+    const longitudes = chargingSpotsList.map(marker => marker.longitude);
+
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const minLng = Math.min(...longitudes);
+    const maxLng = Math.max(...longitudes);
+
+    // Calculate the center of the region
+    const midLat = (minLat + maxLat) / 2;
+    const midLng = (minLng + maxLng) / 2;
+
+    // Calculate latitude and longitude deltas (padding of 0.1 for a little margin)
+    const latDelta = (maxLat - minLat) + 0.1;
+    const lngDelta = (maxLng - minLng) + 0.1;
+
     const [region] = useState({
-        latitude: currentLocation?.coords?.latitude,
-        longitude: currentLocation?.coords?.longitude,
-        latitudeDelta: 0.2,
-        longitudeDelta: 0.2,
+        latitude: currentLocation?.coords?.latitude || midLat,
+        longitude: currentLocation?.coords?.longitude || midLng,
+        latitudeDelta: latDelta,
+        longitudeDelta: lngDelta,
     });
   
     let mapAnimation = new Animated.Value(0);

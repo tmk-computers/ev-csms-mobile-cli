@@ -19,7 +19,7 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MapViewDirections from "react-native-maps-directions";
 import Key from "../../constants/key";
-import { fetchEnrouteChargingStations } from '../../api/realApi';
+import { fetchEnrouteChargingStationsUsingAggregator } from '../../api/realApi';
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 
@@ -77,9 +77,7 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
 
   const loadEnrouteChargingStations = async () => {
     try {
-      let sourcePlace = "";
-      let destinationPlace = "";
-      const { success, data } = await fetchEnrouteChargingStations(sourcePlace, destinationPlace);
+      const { success, data } = await fetchEnrouteChargingStationsUsingAggregator(pickupLocation.latitude, pickupLocation.longitude, destinationLocation.latitude, destinationLocation.longitude, 50);
       if (success && Array.isArray(data) && data.length > 0) {
         setMarkerList(data);
         mapAnimation.addListener(({ value }) => {
