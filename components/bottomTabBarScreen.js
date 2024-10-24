@@ -116,9 +116,7 @@ const BottomTabBarScreen = ({ navigation }) => {
               ),
           }}
         />
-        {isLoggedIn && (
-          <>
-            <Tab.Screen
+         <Tab.Screen
               name="Booking"
               component={BookingScreen}
               options={{
@@ -162,8 +160,6 @@ const BottomTabBarScreen = ({ navigation }) => {
                   ),
               }}
             />
-          </>
-        )}
         <Tab.Screen
           name="Profile"
           component={ProfileScreen}

@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import React, { useState, useCallback, createRef } from "react";
+import React, { useState, useCallback, createRef, useEffect } from "react";
 import {
   Colors,
   Fonts,
@@ -19,6 +19,8 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import MyStatusBar from "../../components/myStatusBar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Loader from "../../utils/loader/loading";
 
 const onboardingScreenList = [
   {
@@ -77,22 +79,40 @@ const OnboardingScreen = ({ navigation }) => {
   const [backClickCount, setBackClickCount] = useState(0);
   const listRef = createRef();
   const [currentScreen, setCurrentScreen] = useState(0);
-
+  const[isLoggedin, setIsLoggedIn] = useState(null)
   const scrollToIndex = ({ index }) => {
     listRef.current.scrollToIndex({ animated: true, index: index });
     setCurrentScreen(index);
   };
 
+
+    
+  useEffect(() => {
+      const loggedinVerification = async() =>{
+          const isLoggedIn = await AsyncStorage.getItem("accessToken")
+          if(isLoggedIn) navigation.navigate("BottomTabBar")
+          setIsLoggedIn(!!isLoggedIn)
+      }
+      loggedinVerification()
+  },[])
+
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
-      <MyStatusBar />
-      <View style={{ flex: 1 }}>
-        {onboardingScreenContent()}
-        {indicators()}
-        {nextArrowButton()}
-      </View>
-      {exitInfo()}
+    isLoggedin === null ? 
+
+    <View style={{display:"flex", justifyContent:'center', height:"100%"}}>
+      <Loader size={"large"}/>
     </View>
+    :
+    <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
+    <MyStatusBar />
+    <View style={{ flex: 1 }}>
+      {onboardingScreenContent()}
+      {indicators()}
+      {nextArrowButton()}
+    </View>
+    {exitInfo()}
+  </View>
+    
   );
 
   function nextArrowButton() {

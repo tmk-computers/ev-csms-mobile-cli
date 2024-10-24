@@ -30,6 +30,36 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentPosition } from '../../helpers/geoUtils';
 import { getImageSource, isImageUrl } from "../../helpers/imageUtils";
 
+const dummyConnectionsList = [
+  {
+    id: 1,
+    connectionTypeImage: "connection_type1.png",
+    connectionType: "CCS",
+    capacity: 55,
+    pricePerWatt: 0.05,
+    takenSlot: 0,
+    totalSlot: 3,
+  },
+  {
+    id: 2,
+    connectionTypeImage: "connection_type2.png",
+    connectionType: "CCS2",
+    capacity: 55,
+    pricePerWatt: 0.05,
+    takenSlot: 2,
+    totalSlot: 5,
+  },
+  {
+    id: 3,
+    connectionTypeImage: "connection_type3.png",
+    connectionType: "Mennekes",
+    capacity: 34,
+    pricePerWatt: 0.02,
+    takenSlot: 6,
+    totalSlot: 6,
+  },
+];
+
 const AllAminitiesList = [
   {
     id: "1",
@@ -128,7 +158,12 @@ const ChargingStationDetailScreen = ({ navigation, route }) => {
       const { success, data } = await fetchChargingStationConnectorDetails(id);
       console.log("Charging station details fetched.", id, success, data);
       if (success && data) {
-        setConnectionsList(data);
+        if (data.length > 0) {
+          setConnectionsList(data);
+        }
+        else {
+          setConnectionsList(dummyConnectionsList);
+        }
 
         console.log("Charging station connectors fetched successfully.");
       } else {
@@ -348,7 +383,7 @@ const ChargingStationDetailScreen = ({ navigation, route }) => {
                 {chargingStation?.address} {chargingStation?.pincode}
               </Text>
               <Text numberOfLines={1} style={{ ...Fonts.grayColor14Medium }}>
-                Open: {chargingStation?.operationalHours}
+                Open: {chargingStation?.operationalHours || "24 X 7"}
               </Text>
             </View>
             <MaterialIcons

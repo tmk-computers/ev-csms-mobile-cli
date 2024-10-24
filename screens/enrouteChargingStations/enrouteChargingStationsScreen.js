@@ -37,7 +37,7 @@ const localImageMap = {
 };
 
 const EnrouteChargingStationsScreen = ({ navigation, route }) => {
-  const { pickupLocation, destinationLocation } = route.params;
+  const { pickupLocation, destinationLocation, showCards } = route.params;
   console.log("EnrouteChargingStationsScreen", pickupLocation, destinationLocation);
   // Calculate the midpoint between the pickupLocation and destinationLocation
   const latitudeMidpoint = (pickupLocation.latitude + destinationLocation.latitude) / 2;
@@ -62,7 +62,10 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
 
   let mapAnimation = new Animated.Value(0);
   let mapIndex = 0;
-
+  const totalTime = "HH:MM"
+  const source = "Source"
+  const chargingStations = ["Charging station -1", "Charging station -2"]
+  const destination = "Destination"
   const _map = createRef();
 
   useEffect(() => {
@@ -142,12 +145,13 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
   };
 
   const _scrollView = useRef(null);
-
+  
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
       <View style={{ flex: 1 }}>
         {markersInfo()}
+        {floatingButton()}
         {backArrow()}
         {chargingSpotsInfo()}
       </View>
@@ -170,6 +174,21 @@ const EnrouteChargingStationsScreen = ({ navigation, route }) => {
       </TouchableOpacity>
     );
   }
+
+  function floatingButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.navigate("DetailsScreen", { totalTime, source, chargingStations, destination  });
+        }}
+        style={styles.floatingButtonStyle}
+      >
+        <Text style={{ ...Fonts.whiteColorBold }}>View Details</Text>
+      </TouchableOpacity>
+    );
+  }
+ 
 
   function markersInfo() {
     return (
@@ -430,4 +449,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  floatingButtonStyle: {
+    position: 'absolute',
+    bottom: 200,
+    right: 30,
+    backgroundColor: Colors.primaryColor,
+    padding: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
 });
