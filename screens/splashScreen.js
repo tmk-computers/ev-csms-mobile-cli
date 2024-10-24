@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { LinearGradient } from "react-native-linear-gradient";
 import { Fonts } from "../constants/styles";
 import { useFocusEffect } from "@react-navigation/native";
@@ -22,6 +22,10 @@ const SplashScreen = ({ navigation }) => {
       return true;
     }
   };
+
+ 
+
+
 
   useFocusEffect(
     useCallback(() => {

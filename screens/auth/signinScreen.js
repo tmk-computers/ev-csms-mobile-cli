@@ -65,7 +65,6 @@ const SigninScreen = ({ navigation }) => {
     const { success, data } = await socialLogin(userInfo.email, userInfo.name, '', userInfo.service);
     if (success && data) {
       const { token, refreshToken, expiresIn } = data;
-
       await AsyncStorage.setItem('accessToken', token);
       await AsyncStorage.setItem('refreshToken', refreshToken);
       await AsyncStorage.setItem('expiresIn', expiresIn.toString());
@@ -73,6 +72,7 @@ const SigninScreen = ({ navigation }) => {
       await AsyncStorage.setItem('mobileNumber', userInfo.contact ? userInfo.contact : '' );
       await AsyncStorage.setItem('email', userInfo.email);
       await AsyncStorage.setItem('socialLogin', 'true');
+      await AsyncStorage.setItem('image', userInfo.image);
       setisLoading(false);
       navigation.push("BottomTabBar");
     } else {

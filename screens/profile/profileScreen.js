@@ -29,7 +29,7 @@ const ProfileScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [isSocialLogin, setIsSocialLogin] = useState(false);
-
+  const [image, setImage] = useState('')
   const loadProfileData = async () => {
     try {
       const accessToken = await AsyncStorage.getItem('accessToken');
@@ -38,10 +38,16 @@ const ProfileScreen = ({ navigation }) => {
         const storedMobileNumber = await AsyncStorage.getItem('mobileNumber');
         const storedEmail = await AsyncStorage.getItem('email');
         const storedIsSocialLogin = await AsyncStorage.getItem('socialLogin');
-
+        const storedImage = await AsyncStorage.getItem('image')
         if (storedFullName) setFullName(storedFullName);
-        if (storedMobileNumber) setMobileNumber(storedMobileNumber || storedEmail);
+        if (storedMobileNumber) {
+          setMobileNumber(storedMobileNumber);
+        }else if(storedEmail){
+          setMobileNumber(storedEmail)
+        }
+        
         if (storedIsSocialLogin === 'true') setIsSocialLogin(true);
+        if(storedImage?.length > 0) setImage(storedImage)
       }
       setIsLoggedIn(!!accessToken);
     } catch (error) {
@@ -85,6 +91,7 @@ const ProfileScreen = ({ navigation }) => {
       await AsyncStorage.removeItem('refreshToken');
       await AsyncStorage.removeItem('expiresIn');
       await AsyncStorage.removeItem('socialLogin');
+      await AsyncStorage.removeItem('image')
       setshowLogoutSheet(false);
       navigation.push("Signin");
     }
@@ -164,7 +171,7 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.profileInfoWithOptionsWrapStyle}>
         <View style={{ alignItems: "center" }}>
           <Image
-            source={require("../../assets/images/users/user4.png")}
+            source={image.length > 0 ? {uri: image} : require("../../assets/images/users/user4.png")}
             style={styles.userImageStyle}
           />
         </View>
@@ -175,7 +182,7 @@ const ProfileScreen = ({ navigation }) => {
             marginBottom: Sizes.fixPadding,
           }}>
           <Text style={{ ...Fonts.blackColor18SemiBold }}>{fullName || "Full Name"}</Text>
-          <Text style={{ ...Fonts.grayColor16Medium }}>{mobileNumber || "Mobile Number"}</Text>
+          <Text style={{ ...Fonts.grayColor16Medium }}>{mobileNumber || "Mobile Number" }</Text>
         </View>
         <View>
           {profileOption({

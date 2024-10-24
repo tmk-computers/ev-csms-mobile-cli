@@ -42,12 +42,16 @@ const EnRouteScreen = ({ navigation, route }) => {
   const [pickAlert, setpickAlert] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [currentLocationLoaded, setCurrentLocationLoaded] = useState(false);
-  const [carName, setCarName] = useState("");
-  const [carModel, setCarModel] = useState("");
-  const [modelYear, setModelYear] = useState("");
-  const [trim, setTrim] = useState(""); // S/LS/SL Plus
-  const [vin, setVin] = useState("");
-
+  const [carDetails, setCarDetails] = useState({
+    frequency:"",
+    aminities:"",
+    haultDuration: "",
+    batteryStatus:"",
+    milage:"",
+    carBatteryCapacity: "",
+    carDetails: ""
+  })
+  const showCards = false
   const fetchCurrentLocation = async () => {
     const location = await getCurrentPosition();
     setCurrentLocation(location);
@@ -86,7 +90,7 @@ const EnRouteScreen = ({ navigation, route }) => {
         }}
         onPress={() => {
           if (pickupAddress && destinationAddress) {
-            navigation.push("EnrouteChargingStations", {pickupLocation, destinationLocation});
+            navigation.push("EnrouteChargingStations", {pickupLocation, destinationLocation, showCards});
           } else {
             setpickAlert(true);
             setTimeout(() => {
@@ -106,56 +110,56 @@ const EnRouteScreen = ({ navigation, route }) => {
     return (
       <View style={styles.carDetailsContainer}>
         <Text style={Fonts.blackColor18Medium}>Enter Car Details</Text>
-        <TextInput
+        {/* <TextInput
           style={styles.input}
-          placeholder="Car Name"
-          value={carName}
-          onChangeText={setCarName}
+          placeholder="Frequency of hault during the travel"
+          value={carDetails.frequency}
+          onChangeText={setCarDetails({...carDetails, frequency: })}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
-          placeholder="Car Model"
-          value={carModel}
-          onChangeText={setCarModel}
+          placeholder="Animities filtering during travel"
+          value={aminities}
+          onChangeText={setAminities}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
-          placeholder="Model Year"
-          value={modelYear}
+          placeholder="Duration of hault during travel"
+          value={haultDuration}
           keyboardType="numeric"
           onChangeText={setModelYear}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
-          placeholder="Trim (S/LS/SL Plus)"
-          value={trim}
-          onChangeText={setTrim}
+          placeholder="Battery charge status at start of the trip"
+          value={batteryStatus}
+          onChangeText={setBatteryStatus}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
-          placeholder="VIN"
-          value={vin}
-          onChangeText={setVin}
+          placeholder="Milage per KW"
+          value={milage}
+          onChangeText={setMilage}
           placeholderTextColor={"gray"}
         />
         <TextInput
           style={styles.input}
-          placeholder="Battery Percentage"
-          value={vin}
-          onChangeText={setVin}
+          placeholder="Car battery capacity"
+          value={carBatteryCapacity}
+          onChangeText={setCarBatteryCapacity}
           placeholderTextColor={"gray"}
-        />
-        <TextInput
+        /> */}
+        {/* <TextInput
           style={styles.input}
           placeholder="Avg. Milage"
-          value={vin}
-          onChangeText={setVin}
+          value={milage}
+          onChangeText={setMilage}
           placeholderTextColor={"gray"}
-        />
+        /> */}
       </View>
     );
   }
