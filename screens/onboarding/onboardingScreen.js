@@ -168,6 +168,9 @@ const OnboardingScreen = ({ navigation }) => {
             }}
           />
           <View style={{ marginHorizontal: Sizes.fixPadding * 2.0 }}>
+            <Text onPress={() => {
+              navigation.navigate("TestScreen")
+            }}>Testing Screen</Text>
             <Text
               style={{ textAlign: "center", ...Fonts.blackColor20SemiBold }}
             >

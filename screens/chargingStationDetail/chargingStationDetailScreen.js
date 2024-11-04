@@ -262,6 +262,8 @@ const ChargingStationDetailScreen = ({ navigation, route }) => {
 
   }, [route.params?.chargingStationId]); // Dependency array
 
+  console.log("ChargingStationDetail"); 
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />

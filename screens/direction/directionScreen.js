@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, PermissionsAndroid, Platform, ScrollView, TextInput,} from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, PermissionsAndroid, Platform, ScrollView, TextInput, Dimensions, Button, } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Colors,
@@ -20,10 +20,15 @@ import Geocoder from "react-native-geocoding";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import BatteryModal from "../../components/batterymodal";
 
+import { NativeModules } from 'react-native';
+
+
+
 
 const DirectionScreen = ({ navigation, route }) => {
 
   const { fromLocation, toLocation, station } = route.params;
+  const { NativeScreen } = NativeModules;
 
   const mapRef = useRef(null);
   const [currentLocation, setCurrentLocation] = useState(fromLocation);
@@ -43,9 +48,9 @@ const DirectionScreen = ({ navigation, route }) => {
   const LATITUDE = currentLocation?.coords?.latitude;
   const LONGITUDE = currentLocation?.coords?.longitude;
   const [currentmarker, setCurrentMarker] = useState({
-      latitude: LATITUDE,
-      longitude: LONGITUDE,
-    });
+    latitude: LATITUDE,
+    longitude: LONGITUDE,
+  });
   const [isBatteryModalVisible, setBatteryModalVisible] = useState(false);
   const [batteryPercentage, setBatteryPercentage] = useState(null);
   const ASPECT_RATIO = screenWidth / screenHeight
@@ -63,6 +68,24 @@ const DirectionScreen = ({ navigation, route }) => {
 
     init();
     () => Geolocation.clearWatch(watchId)
+  }, []);
+
+  const [orientation, setOrientation] = useState('portrait');
+
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      const { width, height } = Dimensions.get('window');
+      setOrientation(width > height ? 'landscape' : 'portrait');
+    };
+
+    // Initial check
+    handleOrientationChange();
+
+    // Add event listener
+    const subscription = Dimensions.addEventListener('change', handleOrientationChange);
+
+    // Clean up the event listener
+    return () => subscription?.remove();
   }, []);
 
   const requestLocationPermission = async () => {
@@ -95,7 +118,7 @@ const DirectionScreen = ({ navigation, route }) => {
             async (position) => {
               const { latitude, longitude } = position.coords;
               setCurrentLocation({ latitude, longitude });
-    
+
               // Reverse Geocoding to get address
               try {
                 const fromResponse = await Geocoder.from(latitude, longitude);
@@ -279,7 +302,7 @@ const DirectionScreen = ({ navigation, route }) => {
 
   const startNavigation = () => {
     setNavigationStarted(true);
-    
+
     // Fit both markers (start and end points) on the screen
     mapRef.current.fitToCoordinates([fromLocation, toLocation], {
       edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -301,7 +324,7 @@ const DirectionScreen = ({ navigation, route }) => {
     }, { duration: 1000 });
   };
 
-  
+
   const updateMapCamera = (currentPosition) => {
     const nextStep = routeCoordinates[stepIndex] || toLocation;
     const heading = calculateHeading(currentPosition, nextStep);
@@ -318,23 +341,32 @@ const DirectionScreen = ({ navigation, route }) => {
   };
 
   const handleBatteryPercentageSubmit = (percentage) => {
-  setBatteryPercentage(percentage)
-  startNavigation()
+    setBatteryPercentage(percentage)
+    startNavigation()
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
       <MyStatusBar />
       <View style={{ flex: 1 }}>
+        <Button title="Open Android" onPress={() => {
+          NativeScreen.openNativeScreen(16.867634, 74.570389, 18.516726, 73.856255);
+        }} />
         {mapView()}
-        {backArrowWithboardDestination()}
-        <View style={{
-          position: 'absolute', bottom: 20.0,
+        {backArrowWithboardDestination(navigationStarted)}
+        <View style={orientation == "portrait" ? {
+          position: 'absolute',
+          bottom: 20.0,
           left: 20.0,
+          right: 20.0,
+        } : {
+          position: 'absolute',
+          bottom: 20.0,
+          left: screenHeight / 1.5,
           right: 20.0,
         }} >
           {batteryPercentage && batteryIcon()}
-          {chargingSpotInfo()}
+          {/* {chargingSpotInfo()} */}
           <View style={{ flexDirection: "row", }}>
             {!navigationStarted && startNavigationButton()}
             {viewDirectionsButton()}
@@ -346,11 +378,11 @@ const DirectionScreen = ({ navigation, route }) => {
     </View>
   );
 
-  function batteryIcon(){
-    return(
-      <View style={{...styles.batteryModelParent}}>
+  function batteryIcon() {
+    return (
+      <View style={{ ...styles.batteryModelParent }}>
         <MaterialIcons name="battery-charging-full" size={24} color={Colors.primaryColor} />
-        <Text style={{color:'green'}}>{batteryPercentage}%</Text>
+        <Text style={{ color: 'green' }}>{batteryPercentage}%</Text>
       </View>
     )
   }
@@ -361,7 +393,8 @@ const DirectionScreen = ({ navigation, route }) => {
       <TouchableOpacity
         style={styles.navigationButton}
         activeOpacity={0.8}
-        onPress={() => setBatteryModalVisible(true)}
+        onPress={() => startNavigation()}
+      // onPress={() => setBatteryModalVisible(true)}
       >
         <Text style={styles.navigationButtonText}>Start Navigation</Text>
       </TouchableOpacity>
@@ -384,7 +417,7 @@ const DirectionScreen = ({ navigation, route }) => {
 
 
 
-  function batteryModal (){
+  function batteryModal() {
     return (
       <BatteryModal
         visible={isBatteryModalVisible}
@@ -468,7 +501,7 @@ const DirectionScreen = ({ navigation, route }) => {
     );
   }
 
-  
+
   async function setTheMarkerAccordingSearch({ address }) {
     Geocoder.from(address)
       .then(json => {
@@ -484,137 +517,139 @@ const DirectionScreen = ({ navigation, route }) => {
       .catch(error => console.warn(error));
   }
 
-  function backArrowWithboardDestination() {
+  function backArrowWithboardDestination(navigationStarted) {
     return (
       <View style={{ ...styles.searchFieldWithBackArrowWrapStyle }}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => navigation.pop()}
-        style={styles.backArrowWrapper}>
-        <MaterialIcons
-          name={'arrow-back'}
-          size={24}
-          color={Colors.blackColor}
-        />
-      </TouchableOpacity>
-
-     <View style={{...styles.searchParent}}>
-     <View style={{ ...styles.searchFieldWrapStyle }}>
-        <Ionicons
-          name="search"
-          color={Colors.grayColor}
-          size={20}
-          style={{ marginTop: Sizes.fixPadding - 3.0 }}
-        />
-        <GooglePlacesAutocomplete
-          placeholder={"Your Location"}
-          onPress={(data) => {
-            console.log("search", data);
-            setFromSearch(data.description);
-            setTheMarkerAccordingSearch({ address: data.description });
-          }}
-          styles={{ 
-            textInput: { height: 35,
-            color: Colors.blackColor, // Ensure this color is visible against the background
-            backgroundColor: Colors.whiteColor, 
-           },
-           
-          }}
-
-          renderRow={(rowData) => (
-            <View style={{ backgroundColor: Colors.whiteColor }}>
-              <Text style={{ color: Colors.blackColor }}>
-                {rowData.description}
-              </Text>
-            </View>
-          )}
-
-          query={{
-            key: Key.apiKey,
-            language: "en",
-          }}
-          textInputProps={{
-            InputComp: TextInput,
-            value: fromSearch,
-            onChangeText: (value) => {
-              setFromSearch(value);
-            },
-            selectionColor: Colors.primaryColor,
-            placeholderTextColor: Colors.grayColor,
-          }}
-        />
-        {fromSearch.length > 0 ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.pop()}
+          style={styles.backArrowWrapper}>
           <MaterialIcons
-            name="close"
-            size={20}
-            color={Colors.grayColor}
-            style={{ marginTop: Sizes.fixPadding - 3.0 }}
-            onPress={() => {
-              console.log('fromSearch')
-              setFromSearch('');
-            }}
+            name={'arrow-back'}
+            size={24}
+            color={Colors.blackColor}
           />
-        ) : null}
-      </View>
-      <View style={{ ...styles.searchFieldWrapStyle }}>
-        <Ionicons
-          name="search"
-          color={Colors.grayColor}
-          size={20}
-          style={{ marginTop: Sizes.fixPadding - 3.0 }}
-        />
-        <GooglePlacesAutocomplete
-          placeholder={station?.stationAddress || station?.address || "Destination"}
-          onPress={(data) => {
-            console.log("search", data);
-            setToSearch(data.description);
-            setTheMarkerAccordingSearch({ address: data.description });
-          }}
-          styles={{ 
-            textInput: { height: 35,
-            color: Colors.blackColor, // Ensure this color is visible against the background
-            backgroundColor: Colors.whiteColor, 
-           },
-           
-          }}
+        </TouchableOpacity>
 
-          renderRow={(rowData) => (
-            <View style={{ backgroundColor: Colors.whiteColor }}>
-              <Text style={{ color: Colors.blackColor }}>
-                {rowData.description}
-              </Text>
-            </View>
-          )}
+        {navigationStarted == false && <View style={{ ...styles.searchParent }}>
+          <View style={{ ...styles.searchFieldWrapStyle }}>
+            <Ionicons
+              name="search"
+              color={Colors.grayColor}
+              size={20}
+              style={{ marginTop: Sizes.fixPadding - 3.0 }}
+            />
+            <GooglePlacesAutocomplete
+              placeholder={"Your Location"}
+              onPress={(data) => {
+                console.log("search", data);
+                setFromSearch(data.description);
+                setTheMarkerAccordingSearch({ address: data.description });
+              }}
+              styles={{
+                textInput: {
+                  height: 35,
+                  color: Colors.blackColor, // Ensure this color is visible against the background
+                  backgroundColor: Colors.whiteColor,
+                },
 
-          query={{
-            key: Key.apiKey,
-            language: "en",
-          }}
-          textInputProps={{
-            InputComp: TextInput,
-            value: toSearch,
-            onChangeText: (value) => {
-              setToSearch(value);
-            },
-            selectionColor: Colors.primaryColor,
-            placeholderTextColor: Colors.grayColor,
-            editable: false
-          }}
-        />
-        {toSearch?.length > 0 ? (
-          <MaterialIcons
-            name="close"
-            size={20}
-            color={Colors.grayColor}
-            style={{ marginTop: Sizes.fixPadding - 3.0 }}
-            onPress={() => {
-              setToSearch('');
-            }}
-          />
-        ) : null}
+              }}
+
+              renderRow={(rowData) => (
+                <View style={{ backgroundColor: Colors.whiteColor }}>
+                  <Text style={{ color: Colors.blackColor }}>
+                    {rowData.description}
+                  </Text>
+                </View>
+              )}
+
+              query={{
+                key: Key.apiKey,
+                language: "en",
+              }}
+              textInputProps={{
+                InputComp: TextInput,
+                value: fromSearch,
+                onChangeText: (value) => {
+                  setFromSearch(value);
+                },
+                selectionColor: Colors.primaryColor,
+                placeholderTextColor: Colors.grayColor,
+              }}
+            />
+            {fromSearch.length > 0 ? (
+              <MaterialIcons
+                name="close"
+                size={20}
+                color={Colors.grayColor}
+                style={{ marginTop: Sizes.fixPadding - 3.0 }}
+                onPress={() => {
+                  console.log('fromSearch')
+                  setFromSearch('');
+                }}
+              />
+            ) : null}
+          </View>
+          <View style={{ ...styles.searchFieldWrapStyle }}>
+            <Ionicons
+              name="search"
+              color={Colors.grayColor}
+              size={20}
+              style={{ marginTop: Sizes.fixPadding - 3.0 }}
+            />
+            <GooglePlacesAutocomplete
+              placeholder={station?.stationAddress || station?.address || "Destination"}
+              onPress={(data) => {
+                console.log("search", data);
+                setToSearch(data.description);
+                setTheMarkerAccordingSearch({ address: data.description });
+              }}
+              styles={{
+                textInput: {
+                  height: 35,
+                  color: Colors.blackColor, // Ensure this color is visible against the background
+                  backgroundColor: Colors.whiteColor,
+                },
+
+              }}
+
+              renderRow={(rowData) => (
+                <View style={{ backgroundColor: Colors.whiteColor }}>
+                  <Text style={{ color: Colors.blackColor }}>
+                    {rowData.description}
+                  </Text>
+                </View>
+              )}
+
+              query={{
+                key: Key.apiKey,
+                language: "en",
+              }}
+              textInputProps={{
+                InputComp: TextInput,
+                value: toSearch,
+                onChangeText: (value) => {
+                  setToSearch(value);
+                },
+                selectionColor: Colors.primaryColor,
+                placeholderTextColor: Colors.grayColor,
+                editable: false
+              }}
+            />
+            {toSearch?.length > 0 ? (
+              <MaterialIcons
+                name="close"
+                size={20}
+                color={Colors.grayColor}
+                style={{ marginTop: Sizes.fixPadding - 3.0 }}
+                onPress={() => {
+                  setToSearch('');
+                }}
+              />
+            ) : null}
+          </View>
+        </View>}
       </View>
-     </View>
-    </View>
     );
   }
 
@@ -801,18 +836,18 @@ const styles = StyleSheet.create({
     ...commonStyles.rowAlignCenter,
     zIndex: 100,
   },
-  searchParent:{
-    display:'flex',
-    flexDirection:'column',
-    gap:10,
-    width:'85%'
+  searchParent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    width: '85%'
   },
-  batteryModelParent:{
-    display:"flex",
-    justifyContent:"flex-end",
-    width:"100%",
-    flexDirection:"row",
-    alignItems:"center",
-    paddingBottom:10
+  batteryModelParent: {
+    display: "flex",
+    justifyContent: "flex-end",
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: 10
   }
 });
