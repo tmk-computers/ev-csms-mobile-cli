@@ -33,6 +33,8 @@ import SigninScreen from "./screens/auth/signinScreen";
 import RegisterScreen from "./screens/auth/registerScreen";
 import VerificationScreen from "./screens/auth/verificationScreen";
 import ViewDetailScreen from './screens/viewdetailsScreen/viewDetails';
+import BlogList from './screens/blog/blogList/BlogList';
+import BlogDetails from './screens/blog/blogDetails/BlogDetails';
 // import TestScreen from './screens/test/TestScreen';
 
 LogBox.ignoreAllLogs();
@@ -76,6 +78,8 @@ function MyApp() {
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="Verification" component={VerificationScreen} />
                 <Stack.Screen name="DetailsScreen" component={ViewDetailScreen} />
+                <Stack.Screen name="BlogList" component={BlogList} />
+                <Stack.Screen name="BlogDetails" component={BlogDetails} />
                 {/* <Stack.Screen name="TestScreen" component={TestScreen} /> */}
             </Stack.Navigator>
         </NavigationContainer>

@@ -236,6 +236,13 @@ const ProfileScreen = ({ navigation }) => {
               navigation.push("Help");
             },
           })}
+          {profileOption({
+            option: "Blog",
+            icon: require("../../assets/images/icons/help.png"),
+            onPress: () => {
+              navigation.navigate("BlogList");
+            },
+          })}
           {logoutInfo()}
         </View>
       </View>
