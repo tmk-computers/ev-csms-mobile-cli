@@ -19,6 +19,7 @@ import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplet
 import Geocoder from "react-native-geocoding";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import BatteryModal from "../../components/batterymodal";
+import Mapbox from '@rnmapbox/maps';
 
 import { NativeModules } from 'react-native';
 
@@ -677,7 +678,7 @@ const DirectionScreen = ({ navigation, route }) => {
 
 
     return (
-      <MapView
+      <Mapbox.MapView
         ref={mapRef}
         style={{ flex: 1 }}
         initialRegion={{
@@ -687,7 +688,7 @@ const DirectionScreen = ({ navigation, route }) => {
           longitudeDelta: Math.max(longitudeDelta, 0.2),
         }}
       >
-        <MapViewDirections
+        {/* <MapViewDirections
           origin={currentLocation}
           destination={toLocation}
           apikey={Key.apiKey}
@@ -715,8 +716,8 @@ const DirectionScreen = ({ navigation, route }) => {
             source={require("../../assets/images/icons/marker.png")}
             style={{ width: 40.0, height: 40.0, resizeMode: 'contain' }}
           />
-        </Marker>
-      </MapView>
+        </Marker> */}
+      </Mapbox.MapView>
     );
   }
 };

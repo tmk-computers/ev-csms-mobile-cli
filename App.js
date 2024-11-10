@@ -36,12 +36,18 @@ import ViewDetailScreen from './screens/viewdetailsScreen/viewDetails';
 import BlogList from './screens/blog/blogList/BlogList';
 import BlogDetails from './screens/blog/blogDetails/BlogDetails';
 // import TestScreen from './screens/test/TestScreen';
+import MapboxGL from '@rnmapbox/maps';
+
+MapboxGL.setAccessToken('pk.eyJ1Ijoic3ViaGVuZHVtb2RhayIsImEiOiJjbG5vbXl6aDUwaXN4MnFwYmk0YTJxcmo5In0.jJIwDILn3WHq1YITs182Bw');
 
 LogBox.ignoreAllLogs();
 
 const Stack = createStackNavigator();
 
 function MyApp() {
+    useEffect(()=>{
+        MapboxGL.setAccessToken('pk.eyJ1Ijoic3ViaGVuZHVtb2RhayIsImEiOiJjbG5vbXl6aDUwaXN4MnFwYmk0YTJxcmo5In0.jJIwDILn3WHq1YITs182Bw');
+       },[])
     return (
         <NavigationContainer>
             <Stack.Navigator

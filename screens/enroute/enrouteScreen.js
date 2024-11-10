@@ -19,11 +19,13 @@ import { LinearGradient } from "react-native-linear-gradient";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MyStatusBar from "../../components/myStatusBar";
 import { getCurrentPosition } from '../../helpers/geoUtils';
+import enrouteStore from "./enrouteScreenStore";
+import GetDetailsModal from "./GetDetailsModal";
 
 const EnRouteScreen = ({ navigation, route }) => {
   useEffect(() => {
     fetchCurrentLocation();
-    
+
     if (route.params?.address) {
       if (route.params.addressFor === "pickup") {
         setPickupAddress(route.params.address);
@@ -43,11 +45,11 @@ const EnRouteScreen = ({ navigation, route }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [currentLocationLoaded, setCurrentLocationLoaded] = useState(false);
   const [carDetails, setCarDetails] = useState({
-    frequency:"",
-    aminities:"",
+    frequency: "",
+    aminities: "",
     haultDuration: "",
-    batteryStatus:"",
-    milage:"",
+    batteryStatus: "",
+    milage: "",
     carBatteryCapacity: "",
     carDetails: ""
   })
@@ -57,6 +59,10 @@ const EnRouteScreen = ({ navigation, route }) => {
     setCurrentLocation(location);
     setCurrentLocationLoaded(true);
   };
+
+  const {getDetailsModal} = enrouteStore();
+  console.log("getDetailsModal in enrouteScreen.js",getDetailsModal);
+  
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
@@ -69,9 +75,13 @@ const EnRouteScreen = ({ navigation, route }) => {
           {destinationInfo()}
           {carDetailsInfo()}
           {seeRouteButton()}
+
+          <EstimateBtn/>
         </ScrollView>
         {pickAddressMessage()}
       </View>
+
+      {getDetailsModal && <GetDetailsModal/>}
     </View>
   );
 
@@ -90,7 +100,7 @@ const EnRouteScreen = ({ navigation, route }) => {
         }}
         onPress={() => {
           if (pickupAddress && destinationAddress) {
-            navigation.push("EnrouteChargingStations", {pickupLocation, destinationLocation, showCards});
+            navigation.push("EnrouteChargingStations", { pickupLocation, destinationLocation, showCards });
           } else {
             setpickAlert(true);
             setTimeout(() => {
@@ -271,6 +281,22 @@ const EnRouteScreen = ({ navigation, route }) => {
   }
 };
 
+const EstimateBtn = () => {
+  const {toggleGetDetailsModal} = enrouteStore();
+  return (
+    <TouchableOpacity 
+    onPress={() => {
+      toggleGetDetailsModal()
+    }}
+    style={{
+      ...commonStyles.button,
+      ...styles.seeRouteButtonStyle,
+    }}>
+      <Text  style={{ ...Fonts.whiteColor18Medium }}>Estimate Mileage</Text>
+    </TouchableOpacity>
+  )
+}
+
 export default EnRouteScreen;
 
 const styles = StyleSheet.create({
@@ -310,7 +336,7 @@ const styles = StyleSheet.create({
     paddingVertical: Sizes.fixPadding - 5.0,
     borderRadius: Sizes.fixPadding * 2.0,
     zIndex: 100.0,
-    overflow:'hidden'
+    overflow: 'hidden'
   },
   seeRouteButtonStyle: {
     padding: Sizes.fixPadding,

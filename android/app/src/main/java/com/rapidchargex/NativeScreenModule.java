@@ -8,6 +8,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
+// import com.mapbox.demo.TurnByTurnActivity;
 
 public class NativeScreenModule extends ReactContextBaseJavaModule {
     private static ReactApplicationContext reactContext;
@@ -26,6 +27,7 @@ public class NativeScreenModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void openNativeScreen(double currentLatitude, double currentLongitude, double destinationLatitude, double destinationLongitude) {
          Intent intent = new Intent(reactContext, NativeActivity.class);
+        //  Intent intent = new Intent(reactContext, TurnByTurnActivity.class);
          intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
          intent.putExtra("userLatitude", currentLatitude);
          intent.putExtra("userLongitude", currentLongitude);

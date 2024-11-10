@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">RNCLI ChargePlus</string>
+    <string name="mapbox_access_token">sk.eyJ1IjoicHJhc2FkMjM5NCIsImEiOiJjbG51Z254NGEwY2lyMmtvNWY0emFoejJoIn0.LR0lJF6xLZ_k0K-E_FICTg</string>
+    <string name="turn_by_turn">Turn By Turn</string>
 </resources>
